@@ -13,24 +13,22 @@ function setup(apiMock: Partial<ApiService>) {
 
 describe('AppComponent', () => {
   it('shows loading initially', () => {
-    const fixture = setup({ getMessage: () => NEVER });
+    const fixture = setup({ getHealth: () => NEVER });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Loading');
   });
 
-  it('shows the message on success', () => {
+  it('shows the backend status on success', () => {
     const fixture = setup({
-      getMessage: () => of('Hello from Zarlania API v2'),
+      getHealth: () => of('UP'),
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
-      'Hello from Zarlania API v2',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Backend status: UP');
   });
 
   it('shows an error message on failure', () => {
     const fixture = setup({
-      getMessage: () => throwError(() => new Error('fail')),
+      getHealth: () => throwError(() => new Error('fail')),
     });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain(
