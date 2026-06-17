@@ -21,14 +21,14 @@ describe('ApiService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('GETs the actuator health endpoint and returns the status field', () => {
+  it('GETs the OpenAPI doc endpoint and returns the openapi version', () => {
     let result: string | undefined;
-    service.getHealth().subscribe((status) => (result = status));
+    service.getApiInfo().subscribe((version) => (result = version));
 
-    const req = httpMock.expectOne(`${environment.apiBaseUrl}/actuator/health`);
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/v3/api-docs`);
     expect(req.request.method).toBe('GET');
-    req.flush({ status: 'UP' });
+    req.flush({ openapi: '3.1.0' });
 
-    expect(result).toBe('UP');
+    expect(result).toBe('3.1.0');
   });
 });
