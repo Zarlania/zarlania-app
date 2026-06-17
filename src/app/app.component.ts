@@ -11,7 +11,7 @@ import { ApiService } from './api.service';
       } @else if (error()) {
         <p>Could not reach the API.</p>
       } @else {
-        <h1>Backend status: {{ status() }}</h1>
+        <h1>Connected to backend (OpenAPI {{ apiVersion() }})</h1>
       }
     </main>
   `,
@@ -21,12 +21,12 @@ export class AppComponent implements OnInit {
 
   loading = signal(true);
   error = signal(false);
-  status = signal('');
+  apiVersion = signal('');
 
   ngOnInit(): void {
-    this.api.getHealth().subscribe({
-      next: (status) => {
-        this.status.set(status);
+    this.api.getApiInfo().subscribe({
+      next: (version) => {
+        this.apiVersion.set(version);
         this.loading.set(false);
       },
       error: () => {

@@ -13,22 +13,24 @@ function setup(apiMock: Partial<ApiService>) {
 
 describe('AppComponent', () => {
   it('shows loading initially', () => {
-    const fixture = setup({ getHealth: () => NEVER });
+    const fixture = setup({ getApiInfo: () => NEVER });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Loading');
   });
 
-  it('shows the backend status on success', () => {
+  it('shows the backend connection on success', () => {
     const fixture = setup({
-      getHealth: () => of('UP'),
+      getApiInfo: () => of('3.1.0'),
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Backend status: UP');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Connected to backend (OpenAPI 3.1.0)',
+    );
   });
 
   it('shows an error message on failure', () => {
     const fixture = setup({
-      getHealth: () => throwError(() => new Error('fail')),
+      getApiInfo: () => throwError(() => new Error('fail')),
     });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain(
