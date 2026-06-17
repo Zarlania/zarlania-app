@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 
-interface MessageResponse {
-  message: string;
+interface HealthResponse {
+  status: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -13,9 +13,9 @@ export class ApiService {
   private http = inject(HttpClient);
   private baseUrl = environment.apiBaseUrl;
 
-  getMessage(): Observable<string> {
+  getHealth(): Observable<string> {
     return this.http
-      .get<MessageResponse>(this.baseUrl)
-      .pipe(map((res) => res.message));
+      .get<HealthResponse>(`${this.baseUrl}/actuator/health`)
+      .pipe(map((res) => res.status));
   }
 }

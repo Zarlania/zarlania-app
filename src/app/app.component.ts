@@ -11,7 +11,7 @@ import { ApiService } from './api.service';
       } @else if (error()) {
         <p>Could not reach the API.</p>
       } @else {
-        <h1>{{ message() }}</h1>
+        <h1>Backend status: {{ status() }}</h1>
       }
     </main>
   `,
@@ -21,12 +21,12 @@ export class AppComponent implements OnInit {
 
   loading = signal(true);
   error = signal(false);
-  message = signal('');
+  status = signal('');
 
   ngOnInit(): void {
-    this.api.getMessage().subscribe({
-      next: (msg) => {
-        this.message.set(msg);
+    this.api.getHealth().subscribe({
+      next: (status) => {
+        this.status.set(status);
         this.loading.set(false);
       },
       error: () => {

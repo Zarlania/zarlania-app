@@ -21,14 +21,14 @@ describe('ApiService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('GETs the configured base URL and returns the message field', () => {
+  it('GETs the actuator health endpoint and returns the status field', () => {
     let result: string | undefined;
-    service.getMessage().subscribe((msg) => (result = msg));
+    service.getHealth().subscribe((status) => (result = status));
 
-    const req = httpMock.expectOne(environment.apiBaseUrl);
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/actuator/health`);
     expect(req.request.method).toBe('GET');
-    req.flush({ message: 'Hello from Zarlania API v2' });
+    req.flush({ status: 'UP' });
 
-    expect(result).toBe('Hello from Zarlania API v2');
+    expect(result).toBe('UP');
   });
 });
