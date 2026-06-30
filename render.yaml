@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: zarlania-app
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: master
+    healthCheckPath: /
+    autoDeploy: true
