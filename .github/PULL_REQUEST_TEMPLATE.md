@@ -10,4 +10,4 @@ Closes #<!-- issue number -->
 - [ ] No secrets are committed (keys/tokens/passwords).
 - [ ] If this is an architecturally significant change, an ADR is included or linked.
 - [ ] Release: version is bumped for this change. Set the `release:major|minor|patch` label (unlabeled = patch).
-- [ ] Tests and quality gates pass locally (`npm run lint && npm test`).
+- [ ] Tests and quality gates pass locally (`./scripts/check --full`).
