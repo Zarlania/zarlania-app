@@ -26,8 +26,6 @@ module.exports = tseslint.config(
         'error',
         { type: 'element', prefix: 'app', style: 'kebab-case' },
       ],
-      // ChangeDetectionStrategy.Eager is Angular 22's renamed Default — disable prefer-OnPush
-      '@angular-eslint/prefer-on-push-component-change-detection': 'off',
     },
   },
   {

@@ -4,7 +4,7 @@ import { ApiService } from './api.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main style="font-family: sans-serif; text-align: center; padding: 4rem;">
       @if (loading()) {
