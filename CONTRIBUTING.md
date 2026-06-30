@@ -59,8 +59,8 @@ Apply once in **GitHub → Settings → Branches → Add branch ruleset** (or cl
 1. **Require a pull request before merging** — require **1 approval**, and
    **Require review from Code Owners**.
 2. **Require status checks to pass before merging** — add these checks (they appear
-   after CI has run once on a PR): `Build & quality gates`, `Lint & ADR checks`,
-   `Secret scan`, `PR references an issue`.
+   after CI has run once on a PR): `Lint, test & build`, `Lint & ADR tests`,
+   `Secret scan`, `PR references an issue`, `Release version bump`.
 3. **Require branches to be up to date before merging.**
 4. **Do not allow bypassing the above settings** / **Block force pushes** to `master`.
 5. Leave **Allow squash merging** enabled (disable merge commits/rebase if you prefer).
