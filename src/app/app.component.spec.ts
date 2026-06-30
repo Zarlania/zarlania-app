@@ -23,9 +23,7 @@ describe('AppComponent', () => {
       getMessage: () => of('Hello from Zarlania API v2'),
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
-      'Hello from Zarlania API v2',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Hello from Zarlania API v2');
   });
 
   it('shows an error message on failure', () => {
@@ -33,8 +31,6 @@ describe('AppComponent', () => {
       getMessage: () => throwError(() => new Error('fail')),
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
-      'Could not reach the API',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Could not reach the API');
   });
 });

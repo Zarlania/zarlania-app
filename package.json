@@ -7,7 +7,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "jest --watch",
-    "test:ci": "jest --coverage --ci"
+    "test:ci": "jest --coverage --ci",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "private": true,
   "dependencies": {
@@ -26,11 +29,17 @@
     "@angular/build": "^22.0.4",
     "@angular/cli": "^22.0.4",
     "@angular/compiler-cli": "^22.0.4",
+    "@eslint/js": "10.0.1",
     "@types/jest": "^30.0.0",
+    "angular-eslint": "22.0.0",
+    "eslint": "10.6.0",
+    "eslint-config-prettier": "10.1.8",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "jest-preset-angular": "^17.0.0",
     "jsdom": "^26.1.0",
-    "typescript": "~6.0.3"
+    "prettier": "3.9.4",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "8.62.1"
   }
 }

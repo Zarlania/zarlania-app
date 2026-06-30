@@ -14,8 +14,6 @@ export class ApiService {
   private baseUrl = environment.apiBaseUrl;
 
   getMessage(): Observable<string> {
-    return this.http
-      .get<MessageResponse>(this.baseUrl)
-      .pipe(map((res) => res.message));
+    return this.http.get<MessageResponse>(this.baseUrl).pipe(map((res) => res.message));
   }
 }
