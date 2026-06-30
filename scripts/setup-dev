@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Set up the local dev environment: Python venv, dev deps, and git pre-commit hooks.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT}"
+
+echo "==> Creating Python venv (.venv) if missing"
+if [[ ! -d .venv ]]; then
+  python3.12 -m venv .venv
+fi
+
+echo "==> Installing dev dependencies"
+.venv/bin/pip install --quiet --upgrade pip
+.venv/bin/pip install --quiet -r requirements-dev.txt
+
+echo "==> Installing git hooks (pre-commit)"
+.venv/bin/pre-commit install
+
+echo "==> Verifying Node toolchain and installing npm deps"
+if ! node -v >/dev/null 2>&1; then
+  echo "WARNING: node not found — Node 24 is required for the frontend gates." >&2
+else
+  npm ci
+fi
+
+echo "==> Done. Run ./scripts/check to run the fast checks."
