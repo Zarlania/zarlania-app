@@ -27,7 +27,7 @@
     "@angular/cli": "^22.0.4",
     "@angular/compiler-cli": "^22.0.4",
     "@types/jest": "^30.0.0",
-    "jest": "^30.0.4",
+    "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "jest-preset-angular": "^17.0.0",
     "jsdom": "^26.1.0",
