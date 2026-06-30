@@ -99,9 +99,11 @@ Copied from `zarlania-api` with at most trivial find/replace (`API`→`app`, bac
   (PR references an issue) jobs essentially as-is. **Replace** the Maven `build` +
   `transactional-tests` jobs with a single **frontend** job:
   `npm ci` → `npm run lint` → `npm run test:ci` (Jest, `--coverage`, ≥80% gate) →
-  `npm run build`. Node 24 via `actions/setup-node` with npm cache. Keep a coverage PR
-  comment if low-friction (Jest lcov → a coverage-comment action), else rely on the Jest
-  `coverageThreshold` failing the job. Pin all actions to commit SHAs (matching the API).
+  `npm run build`. Node 24 via `actions/setup-node` with npm cache. **Post a coverage PR
+  comment** from Jest's output (cobertura/lcov via a coverage-comment action, mirroring the
+  API's Python-coverage comment) — visible in every PR — *in addition to* the Jest
+  `coverageThreshold` failing the job at <80%. Pin all actions to commit SHAs (matching the
+  API).
 - **`release-check.yml`** — copied; the only change is the verify step calls
   `python scripts/release_tool/release_cli.py verify "<kind>"` against `package.json`
   (the CLI default `--manifest`). Same label logic (`release:major|minor|patch`).
