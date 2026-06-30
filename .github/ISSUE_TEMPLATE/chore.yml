@@ -1,6 +1,6 @@
 name: Chore / maintenance
 description: Tooling, dependencies, refactor, or housekeeping.
-labels: ["chore"]
+labels: ['chore']
 body:
   - type: textarea
     id: task
