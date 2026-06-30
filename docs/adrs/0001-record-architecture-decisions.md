@@ -71,8 +71,9 @@ Rules established by this ADR:
 4. **One subject per ADR.** Each ADR records exactly one decision, so a future change
    supersedes a single ADR rather than invalidating unrelated ones.
 5. **Lifecycle.** `proposed → accepted → superseded | deprecated`, plus `rejected`.
-   ADRs are created `proposed` and stay so until the user accepts them. **An ADR is
-   authoritative only once `accepted` AND merged to `master`.**
+   ADRs are created `proposed` and stay so until the user accepts them — except the
+   foundational set 0001–0007, accepted in their creating commit as the repo's initial
+   baseline. **An ADR is authoritative only once `accepted` AND merged to `master`.**
 6. **Sequencing (hybrid by risk).** Foundational/high-risk decisions land as their own
    ADR PR first; lower-risk ADRs travel with their implementing code.
 7. **Required when** a change touches: a new framework/major dependency, a new
