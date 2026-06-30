@@ -29,44 +29,44 @@ def _git_tags() -> list[str]:
 
 
 def _cmd_current(args) -> int:
-    print(release.read_pom_version(args.pom))
+    print(release.read_manifest_version(args.manifest))
     return 0
 
 
 def _cmd_bump(args) -> int:
     new_version = release.expected_version(_git_tags(), args.kind)
-    release.set_pom_version(args.pom, new_version)
+    release.set_manifest_version(args.manifest, new_version)
     print(new_version)
     return 0
 
 
 def _cmd_verify(args) -> int:
     expected = release.expected_version(_git_tags(), args.kind)
-    actual = release.read_pom_version(args.pom)
+    actual = release.read_manifest_version(args.manifest)
     if actual != expected:
         print(
-            f"::error::pom version {actual} does not match the '{args.kind}' bump "
+            f"::error::package.json version {actual} does not match the '{args.kind}' bump "
             f"(expected {expected} relative to the latest release tag). "
             f"Run ./scripts/bump-version bump {args.kind}.",
             file=sys.stderr,
         )
         return 1
-    print(f"OK: pom version {actual} matches the '{args.kind}' bump.")
+    print(f"OK: package.json version {actual} matches the '{args.kind}' bump.")
     return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="bump-version", description="Manage the release version.")
-    p.add_argument("--pom", default="pom.xml", help="path to pom.xml")
+    p.add_argument("--manifest", default="package.json", help="path to package.json")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("current", help="print the pom project version").set_defaults(fn=_cmd_current)
+    sub.add_parser("current", help="print the package.json version").set_defaults(fn=_cmd_current)
 
-    b = sub.add_parser("bump", help="write the next version into the pom for <kind>")
+    b = sub.add_parser("bump", help="write the next version into package.json for <kind>")
     b.add_argument("kind", choices=release.BUMP_KINDS)
     b.set_defaults(fn=_cmd_bump)
 
-    v = sub.add_parser("verify", help="assert the pom version matches the <kind> bump")
+    v = sub.add_parser("verify", help="assert the package.json version matches the <kind> bump")
     v.add_argument("kind", choices=release.BUMP_KINDS)
     v.set_defaults(fn=_cmd_verify)
     return p

@@ -56,19 +56,16 @@ def test_expected_version_from_latest_tag():
     assert release.expected_version(["v1.4.2"], "patch") == "1.4.3"
 
 
-def _pom(tmp_path, version):
-    p = tmp_path / "pom.xml"
+def _manifest(tmp_path, version):
+    p = tmp_path / "package.json"
     p.write_text(
         textwrap.dedent(
             f"""\
-            <project>
-              <parent>
-                <artifactId>spring-boot-starter-parent</artifactId>
-                <version>4.1.0</version>
-              </parent>
-              <artifactId>zarlania-api</artifactId>
-              <version>{version}</version>
-            </project>
+            {{
+              "name": "zarlania-app",
+              "version": "{version}",
+              "private": true
+            }}
             """
         ),
         encoding="utf-8",
@@ -76,32 +73,26 @@ def _pom(tmp_path, version):
     return p
 
 
-def test_read_pom_version_reads_project_not_parent(tmp_path):
-    p = _pom(tmp_path, "0.0.1-SNAPSHOT")
-    assert release.read_pom_version(p) == "0.0.1-SNAPSHOT"
+def test_read_manifest_version(tmp_path):
+    p = _manifest(tmp_path, "1.2.3")
+    assert release.read_manifest_version(p) == "1.2.3"
 
 
-def test_set_pom_version_updates_project_not_parent(tmp_path):
-    p = _pom(tmp_path, "0.0.1-SNAPSHOT")
-    release.set_pom_version(p, "0.1.0")
-    assert release.read_pom_version(p) == "0.1.0"
-    assert "<version>4.1.0</version>" in p.read_text(encoding="utf-8")  # parent untouched
+def test_set_manifest_version_round_trips(tmp_path):
+    p = _manifest(tmp_path, "1.2.3")
+    release.set_manifest_version(p, "2.0.0")
+    assert release.read_manifest_version(p) == "2.0.0"
+    # other keys/formatting preserved
+    assert '"name": "zarlania-app"' in p.read_text(encoding="utf-8")
 
 
-def test_read_pom_version_raises_when_missing(tmp_path):
-    p = tmp_path / "pom.xml"
-    p.write_text("<project></project>", encoding="utf-8")
+def test_read_manifest_version_missing_raises(tmp_path):
+    p = tmp_path / "package.json"
+    p.write_text('{"name": "x"}\n', encoding="utf-8")
     with pytest.raises(ValueError):
-        release.read_pom_version(p)
+        release.read_manifest_version(p)
 
 
 def test_parse_version_rejects_four_part():
     with pytest.raises(ValueError):
         release.parse_version("1.2.3.4")
-
-
-def test_set_pom_version_raises_when_missing(tmp_path):
-    p = tmp_path / "pom.xml"
-    p.write_text("<project></project>", encoding="utf-8")
-    with pytest.raises(ValueError):
-        release.set_pom_version(p, "1.0.0")
