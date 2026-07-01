@@ -62,5 +62,15 @@ describe('LandingComponent', () => {
     );
     expect(meta.getTag('property="og:type"')?.content).toBe('website');
     expect(meta.getTag('name="twitter:card"')?.content).toBe('summary_large_image');
+    expect(meta.getTag('property="og:description"')?.content).toBe(
+      'Catalog, index, and track the value of your card collections in one vault — starting with Magic: The Gathering.',
+    );
+    expect(meta.getTag('property="og:url"')?.content).toBe('https://zarlania.com');
+    expect(meta.getTag('name="twitter:title"')?.content).toBe(
+      'Zarlania — Command every collection you own',
+    );
+    expect(meta.getTag('name="twitter:description"')?.content).toBe(
+      'Catalog, index, and track the value of your card collections in one vault — starting with Magic: The Gathering.',
+    );
   });
 });
