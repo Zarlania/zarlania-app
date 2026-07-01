@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: serve with nginx on $PORT
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
