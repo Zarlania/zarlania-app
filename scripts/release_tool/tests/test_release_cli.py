@@ -1,3 +1,4 @@
+import json
 import textwrap
 from types import SimpleNamespace
 
@@ -44,6 +45,35 @@ def test_bump_first_release_uses_zero_base(tmp_path, capsys, monkeypatch):
     rc = release_cli.main(["--manifest", str(p), "bump", "minor"])
     assert rc == 0
     assert release.read_manifest_version(p) == "0.1.0"
+
+
+def test_bump_syncs_the_sibling_lockfile(tmp_path, capsys, monkeypatch):
+    p = _manifest(tmp_path, "0.0.0")
+    lock = tmp_path / "package-lock.json"
+    lock.write_text(
+        textwrap.dedent(
+            """\
+            {
+              "name": "zarlania-app",
+              "version": "0.0.0",
+              "lockfileVersion": 3,
+              "packages": {
+                "": {
+                  "name": "zarlania-app",
+                  "version": "0.0.0"
+                }
+              }
+            }
+            """
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(release_cli, "_git_tags", lambda: ["v0.3.0"])
+    rc = release_cli.main(["--manifest", str(p), "bump", "minor"])
+    assert rc == 0
+    data = json.loads(lock.read_text(encoding="utf-8"))
+    assert data["version"] == "0.4.0"
+    assert data["packages"][""]["version"] == "0.4.0"
 
 
 def test_verify_passes_when_manifest_matches(tmp_path, capsys, monkeypatch):

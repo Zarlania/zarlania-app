@@ -1,12 +1,14 @@
 """SemVer helpers for the release workflow.
 
 Single source of truth for version math: parse/format/bump SemVer, pick the latest
-release tag, and read/write the project version in package.json. Used by the bump-version
-CLI (write) and by CI (verify), so the writer and the checker can never disagree.
+release tag, and read/write the project version in package.json (keeping the sibling
+package-lock.json in sync). Used by the bump-version CLI (write) and by CI (verify), so
+the writer and the checker can never disagree.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -75,3 +77,23 @@ def set_manifest_version(manifest_path: str | Path, new_version: str) -> None:
     if n != 1:
         raise ValueError(f'could not rewrite "version" in {manifest_path}')
     manifest_path.write_text(new_text, encoding="utf-8")
+
+
+def sync_lockfile_version(manifest_path: str | Path, new_version: str) -> None:
+    """Match the sibling package-lock.json's project version to ``new_version``.
+
+    npm records the project version twice — the top-level ``version`` and
+    ``packages[""].version`` — and both must equal package.json, or the next
+    ``npm install`` rewrites the lockfile as unrelated churn. A no-op when no
+    lockfile sits beside the manifest. Rewrites via a JSON round-trip, which
+    reproduces npm's 2-space formatting exactly, so only the versions change.
+    """
+    lock_path = Path(manifest_path).parent / "package-lock.json"
+    if not lock_path.exists():
+        return
+    data = json.loads(lock_path.read_text(encoding="utf-8"))
+    data["version"] = new_version
+    root_package = data.get("packages", {}).get("")
+    if isinstance(root_package, dict) and "version" in root_package:
+        root_package["version"] = new_version
+    lock_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

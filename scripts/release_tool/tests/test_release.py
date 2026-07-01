@@ -1,3 +1,4 @@
+import json
 import textwrap
 
 import pytest
@@ -96,3 +97,44 @@ def test_read_manifest_version_missing_raises(tmp_path):
 def test_parse_version_rejects_four_part():
     with pytest.raises(ValueError):
         release.parse_version("1.2.3.4")
+
+
+def _lockfile(tmp_path, version):
+    p = tmp_path / "package-lock.json"
+    p.write_text(
+        textwrap.dedent(
+            f"""\
+            {{
+              "name": "zarlania-app",
+              "version": "{version}",
+              "lockfileVersion": 3,
+              "requires": true,
+              "packages": {{
+                "": {{
+                  "name": "zarlania-app",
+                  "version": "{version}"
+                }}
+              }}
+            }}
+            """
+        ),
+        encoding="utf-8",
+    )
+    return p
+
+
+def test_sync_lockfile_version_updates_both_project_fields(tmp_path):
+    _manifest(tmp_path, "1.2.3")
+    lock = _lockfile(tmp_path, "1.2.3")
+    release.sync_lockfile_version(tmp_path / "package.json", "2.0.0")
+    data = json.loads(lock.read_text(encoding="utf-8"))
+    assert data["version"] == "2.0.0"
+    assert data["packages"][""]["version"] == "2.0.0"
+    # dependency-tree structure untouched
+    assert data["lockfileVersion"] == 3
+
+
+def test_sync_lockfile_version_noop_when_lockfile_absent(tmp_path):
+    _manifest(tmp_path, "1.2.3")  # no lockfile alongside it
+    # must not raise
+    release.sync_lockfile_version(tmp_path / "package.json", "2.0.0")

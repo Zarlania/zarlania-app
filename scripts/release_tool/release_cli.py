@@ -36,6 +36,7 @@ def _cmd_current(args) -> int:
 def _cmd_bump(args) -> int:
     new_version = release.expected_version(_git_tags(), args.kind)
     release.set_manifest_version(args.manifest, new_version)
+    release.sync_lockfile_version(args.manifest, new_version)
     print(new_version)
     return 0
 
