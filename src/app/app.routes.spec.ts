@@ -26,7 +26,7 @@ describe('app routes', () => {
   });
 
   it('renders the landing page at the root path', async () => {
-    expect(await navigateAndRead('/')).toContain('Zarlania');
+    expect(await navigateAndRead('/')).toContain('Command every collection');
   });
 
   it('renders the signup page at /signup', async () => {
