@@ -56,4 +56,21 @@ describe('AppComponent (shell)', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('footer')).toBeTruthy();
   });
+
+  it('footer shows the current year dynamically', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footer: HTMLElement = fixture.nativeElement.querySelector('footer');
+    expect(footer.textContent).toContain(String(new Date().getFullYear()));
+  });
+
+  it('footer links to signup and login', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footerHrefs = Array.from(fixture.nativeElement.querySelectorAll('footer a')).map((a) =>
+      (a as HTMLAnchorElement).getAttribute('href'),
+    );
+    expect(footerHrefs).toContain('/signup');
+    expect(footerHrefs).toContain('/login');
+  });
 });
