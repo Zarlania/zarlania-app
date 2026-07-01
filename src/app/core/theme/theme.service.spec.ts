@@ -69,4 +69,31 @@ describe('ThemeService', () => {
     service.toggle();
     expect(service.theme()).toBe('dark');
   });
+
+  it('defaults to dark when matchMedia is unavailable and nothing is stored', () => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      configurable: true,
+      value: undefined,
+    });
+    const service = TestBed.inject(ThemeService);
+    expect(service.theme()).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+  });
+
+  it('setTheme keeps working when localStorage.setItem throws', () => {
+    stubMatchMedia(false);
+    const service = TestBed.inject(ThemeService);
+    const setItemSpy = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+
+    try {
+      expect(() => service.setTheme('dark')).not.toThrow();
+      expect(service.theme()).toBe('dark');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    } finally {
+      setItemSpy.mockRestore();
+    }
+  });
 });

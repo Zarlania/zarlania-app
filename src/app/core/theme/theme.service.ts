@@ -23,7 +23,11 @@ export class ThemeService {
 
   setTheme(theme: Theme): void {
     this.current.set(theme);
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Persistence is best-effort; theming must keep working even if storage is unavailable.
+    }
     this.apply(theme);
   }
 
@@ -32,7 +36,12 @@ export class ThemeService {
   }
 
   private readInitial(): Theme {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(THEME_STORAGE_KEY);
+    } catch {
+      // Treat an inaccessible store as "no stored value" and fall back to OS preference.
+    }
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
     return resolveInitialTheme(stored, prefersDark);
   }
