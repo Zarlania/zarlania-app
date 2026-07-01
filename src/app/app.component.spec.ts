@@ -23,9 +23,7 @@ describe('AppComponent', () => {
       getApiInfo: () => of('3.1.0'),
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
-      'Connected to backend (OpenAPI 3.1.0)',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Connected to backend (OpenAPI 3.1.0)');
   });
 
   it('shows an error message on failure', () => {
@@ -33,8 +31,6 @@ describe('AppComponent', () => {
       getApiInfo: () => throwError(() => new Error('fail')),
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
-      'Could not reach the API',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Could not reach the API');
   });
 });

@@ -1,0 +1,99 @@
+"""SemVer helpers for the release workflow.
+
+Single source of truth for version math: parse/format/bump SemVer, pick the latest
+release tag, and read/write the project version in package.json (keeping the sibling
+package-lock.json in sync). Used by the bump-version CLI (write) and by CI (verify), so
+the writer and the checker can never disagree.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+
+BUMP_KINDS = ("major", "minor", "patch")
+
+# Leading optional "v", three numeric components; anything after (e.g. -SNAPSHOT) ignored.
+_SEMVER_RE = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?!\.\d)")
+
+# Matches the top-level "version": "x.y.z" line in package.json (first occurrence),
+# rewriting only the value so the file's formatting is preserved exactly.
+_VERSION_LINE_RE = re.compile(r'(^\s*"version"\s*:\s*")([^"]*)(")', re.MULTILINE)
+
+
+def parse_version(text: str) -> tuple[int, int, int]:
+    m = _SEMVER_RE.match(text.strip())
+    if not m:
+        raise ValueError(f"not a SemVer version: {text!r}")
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+
+
+def format_version(version: tuple[int, int, int]) -> str:
+    return f"{version[0]}.{version[1]}.{version[2]}"
+
+
+def bump(version: tuple[int, int, int], kind: str) -> tuple[int, int, int]:
+    major, minor, patch = version
+    if kind == "major":
+        return (major + 1, 0, 0)
+    if kind == "minor":
+        return (major, minor + 1, 0)
+    if kind == "patch":
+        return (major, minor, patch + 1)
+    raise ValueError(f"unknown bump kind: {kind!r} (expected one of {BUMP_KINDS})")
+
+
+def latest_tag_version(tags: list[str]) -> tuple[int, int, int]:
+    """Return the highest SemVer among tags, or (0, 0, 0) if none parse."""
+    versions = []
+    for tag in tags:
+        try:
+            versions.append(parse_version(tag))
+        except ValueError:
+            continue  # ignore non-SemVer tags
+    return max(versions) if versions else (0, 0, 0)
+
+
+def expected_version(tags: list[str], kind: str) -> str:
+    return format_version(bump(latest_tag_version(tags), kind))
+
+
+def read_manifest_version(manifest_path: str | Path) -> str:
+    """Return the top-level "version" from package.json; raise if absent."""
+    text = Path(manifest_path).read_text(encoding="utf-8")
+    m = _VERSION_LINE_RE.search(text)
+    if not m:
+        raise ValueError(f'could not find "version" in {manifest_path}')
+    return m.group(2).strip()
+
+
+def set_manifest_version(manifest_path: str | Path, new_version: str) -> None:
+    manifest_path = Path(manifest_path)
+    text = manifest_path.read_text(encoding="utf-8")
+    new_text, n = _VERSION_LINE_RE.subn(
+        lambda m: f"{m.group(1)}{new_version}{m.group(3)}", text, count=1
+    )
+    if n != 1:
+        raise ValueError(f'could not rewrite "version" in {manifest_path}')
+    manifest_path.write_text(new_text, encoding="utf-8")
+
+
+def sync_lockfile_version(manifest_path: str | Path, new_version: str) -> None:
+    """Match the sibling package-lock.json's project version to ``new_version``.
+
+    npm records the project version twice — the top-level ``version`` and
+    ``packages[""].version`` — and both must equal package.json, or the next
+    ``npm install`` rewrites the lockfile as unrelated churn. A no-op when no
+    lockfile sits beside the manifest. Rewrites via a JSON round-trip, which
+    reproduces npm's 2-space formatting exactly, so only the versions change.
+    """
+    lock_path = Path(manifest_path).parent / "package-lock.json"
+    if not lock_path.exists():
+        return
+    data = json.loads(lock_path.read_text(encoding="utf-8"))
+    data["version"] = new_version
+    root_package = data.get("packages", {}).get("")
+    if isinstance(root_package, dict) and "version" in root_package:
+        root_package["version"] = new_version
+    lock_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

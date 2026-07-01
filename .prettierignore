@@ -1,0 +1,13 @@
+dist
+coverage
+.angular
+node_modules
+.venv
+package-lock.json
+docs/superpowers
+docs/ai-prompts
+
+# markdownlint owns all Markdown in this repo (see .markdownlint.yaml). Keep Prettier
+# out of .md files so the two formatters don't fight over ADRs/docs.
+*.md
+**/*.md

@@ -1,0 +1,78 @@
+# Fast pre-commit checks. Heavy analysis (tests/build) runs in CI via ./scripts/check --full.
+minimum_pre_commit_version: '3.5.0'
+
+# docs/superpowers/* are Claude's implementation/planning artifacts (specs & plans).
+# docs/ai-prompts/* are the user's personal, git-ignored scratch prompts for the Claude CLI.
+# Neither is source code; both are exempt from ALL hooks — no linting, no auto-fixing.
+exclude: '^docs/(superpowers|ai-prompts)/'
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      # Scans STAGED changes so no new secret can be committed. The repo is brand-new
+      # with clean history, so we intentionally do not run a full-history scan.
+      - id: gitleaks
+
+  # Keep this rev in sync with ruff in requirements-dev.txt (Dependabot bumps that file,
+  # not this hook). Automating this sync is tracked in #26.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.17
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint
+        args: ['--config', '.markdownlint.yaml']
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.10.0-2
+    hooks:
+      - id: shfmt
+        args: ['-i', '2', '-ci', '-d']
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: ['-c', '.yamllint.yaml']
+
+  - repo: local
+    hooks:
+      - id: frontend-lint
+        name: ESLint + Prettier (frontend)
+        entry: npm run lint
+        language: system
+        files: '\.(ts|html|scss|css|json)$'
+        pass_filenames: false
+      - id: adr-check
+        name: ADR validation (./scripts/adr check)
+        entry: ./scripts/adr check
+        language: system
+        files: ^docs/adrs/
+        pass_filenames: false
+      - id: ref-check
+        name: Reference docs validation (./scripts/ref check)
+        entry: ./scripts/ref check
+        language: system
+        files: ^docs/reference/
+        pass_filenames: false

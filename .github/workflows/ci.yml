@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  pull_request:
+    # No labeled/unlabeled here: the required checks below must not run (and skip) on label
+    # events. A skipped required check is treated as passing, so re-running on a label change
+    # would let a label launder a failing check into a mergeable state. Label-driven
+    # re-validation lives in release-check.yml, whose job never skips.
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [master]
+
+# Least privilege by default; only jobs that post comments are granted pull-requests: write
+# (set at job level below).
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Lint, test & build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # for the coverage PR comment
+      checks: write # the cobertura action publishes a check run alongside the comment
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:ci
+      - run: npm run build
+      - name: Coverage PR comment
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && hashFiles('coverage/cobertura-coverage.xml') != '' }}
+        uses: 5monkeys/cobertura-action@ee5787cc56634acddedc51f21c7947985531e6eb # v14
+        with:
+          path: coverage/cobertura-coverage.xml
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          fail_below_threshold: false
+          only_changed_files: false
+          report_name: Frontend Coverage
+
+  checks:
+    name: Lint & ADR tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # for the Python coverage PR comment
+      checks: write # the cobertura action publishes a check run alongside the comment
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dev dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Cache pre-commit environments
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Run lint hooks (frontend lint runs in the frontend job)
+        run: SKIP=frontend-lint pre-commit run --all-files --show-diff-on-failure
+      - name: ADR tooling tests
+        run: pytest --cov-report=xml
+      - name: Python coverage report comment
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && hashFiles('coverage.xml') != '' }}
+        uses: 5monkeys/cobertura-action@ee5787cc56634acddedc51f21c7947985531e6eb # v14
+        with:
+          path: coverage.xml
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          minimum_coverage: 80
+          fail_below_threshold: false
+          # Report all measured modules, not only changed files: the action paginates
+          # changed files at 30/page (omitting Python files on later pages of large PRs),
+          # and the module set here is small — a full table is both correct and readable.
+          only_changed_files: false
+          show_branch: true
+          report_name: Python Coverage
+
+  secrets:
+    name: Secret scan
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks
+        run: |
+          version=8.21.2
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+      - name: Scan PR commits for secrets
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gitleaks git . --redact --no-banner --log-opts="${BASE_SHA}..${HEAD_SHA}"
+
+  governance:
+    name: PR references an issue
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify issue reference in PR title or branch
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          HEAD_REF: ${{ github.head_ref }}
+          PR_USER: ${{ github.event.pull_request.user.login }}
+        run: |
+          if [ "$PR_USER" = "dependabot[bot]" ]; then
+            echo "OK: Dependabot PR is exempt from the issue-reference requirement."
+            exit 0
+          fi
+          if printf '%s' "$PR_TITLE" | grep -qE '#[0-9]+'; then
+            echo "OK: PR title references an issue."
+          elif printf '%s' "$HEAD_REF" | grep -qE '^[a-z]+/[0-9]+-'; then
+            echo "OK: branch name references an issue."
+          else
+            echo "::error::PR must reference a GitHub issue — put #<issue> in the title or name the branch type/<issue#>-slug." >&2
+            exit 1
+          fi

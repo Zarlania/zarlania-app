@@ -17,8 +17,6 @@ export class ApiService {
   // backend's CORS allowlist, purely to confirm the frontend can reach the backend. The payload
   // is incidental — swap this for a real domain endpoint once one exists on the API.
   getApiInfo(): Observable<string> {
-    return this.http
-      .get<ApiDocs>(`${this.baseUrl}/v3/api-docs`)
-      .pipe(map((res) => res.openapi));
+    return this.http.get<ApiDocs>(`${this.baseUrl}/v3/api-docs`).pipe(map((res) => res.openapi));
   }
 }

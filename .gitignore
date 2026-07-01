@@ -37,6 +37,19 @@ yarn-error.log
 testem.log
 /typings
 
+# Secrets / local environment (never commit — see SECURITY.md, CLAUDE.md)
+.env
+.env.*
+!.env.example
+
 # System files
 .DS_Store
 Thumbs.db
+
+# Python
+.venv/
+.coverage
+__pycache__/
+*.pyc
+docs/ai-prompts/*
+!docs/ai-prompts/.gitkeep
