@@ -1,11 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
-    <title>ZarlaniaApp</title>
+    <title>Zarlania — Command every collection you own</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Catalog, index, and track the value of your card collections in one vault — starting with Magic: The Gathering."
+    />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <script>
+      // No-flash theme init: runs before first paint. Mirrors ThemeService's
+      // resolution; key must stay in sync with THEME_STORAGE_KEY ('zarlania-theme').
+      (function () {
+        try {
+          var t = localStorage.getItem('zarlania-theme');
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <app-root></app-root>
