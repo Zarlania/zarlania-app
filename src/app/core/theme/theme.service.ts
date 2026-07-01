@@ -1,4 +1,5 @@
-import { Injectable, Signal, signal } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID, Signal, signal } from '@angular/core';
 
 export type Theme = 'light' | 'dark';
 
@@ -14,6 +15,8 @@ export function resolveInitialTheme(stored: string | null, prefersDark: boolean)
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
+  private readonly document = inject(DOCUMENT);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly current = signal<Theme>(this.readInitial());
   readonly theme: Signal<Theme> = this.current.asReadonly();
 
@@ -23,10 +26,12 @@ export class ThemeService {
 
   setTheme(theme: Theme): void {
     this.current.set(theme);
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {
-      // Persistence is best-effort; theming must keep working even if storage is unavailable.
+    if (this.isBrowser) {
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+      } catch {
+        // Persistence is best-effort; theming must keep working even if storage is unavailable.
+      }
     }
     this.apply(theme);
   }
@@ -36,6 +41,12 @@ export class ThemeService {
   }
 
   private readInitial(): Theme {
+    // During prerender/SSR there is no window or storage; the no-flash inline
+    // script in index.html resolves the real theme on the client. Bake a safe
+    // default so the static HTML is valid.
+    if (!this.isBrowser) {
+      return resolveInitialTheme(null, true);
+    }
     let stored: string | null = null;
     try {
       stored = localStorage.getItem(THEME_STORAGE_KEY);
@@ -47,6 +58,6 @@ export class ThemeService {
   }
 
   private apply(theme: Theme): void {
-    document.documentElement.setAttribute('data-theme', theme);
+    this.document.documentElement.setAttribute('data-theme', theme);
   }
 }

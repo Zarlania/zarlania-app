@@ -5,7 +5,13 @@ const config: Config = {
   setupFilesAfterEnv: ['<rootDir>/setup-jest.ts'],
   testEnvironment: 'jsdom',
   collectCoverage: false,
-  collectCoverageFrom: ['src/app/**/*.ts', '!src/**/*.spec.ts', '!src/main.ts'],
+  collectCoverageFrom: [
+    'src/app/**/*.ts',
+    '!src/**/*.spec.ts',
+    '!src/main.ts',
+    '!src/main.server.ts',
+    '!src/app/app.config.server.ts',
+  ],
   coverageReporters: ['text', 'lcov', 'cobertura'],
   coverageThreshold: {
     global: { branches: 80, functions: 80, lines: 80, statements: 80 },

@@ -1,3 +1,4 @@
+import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ThemeService, resolveInitialTheme, THEME_STORAGE_KEY } from './theme.service';
 
@@ -79,6 +80,30 @@ describe('ThemeService', () => {
     const service = TestBed.inject(ThemeService);
     expect(service.theme()).toBe('dark');
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+  });
+
+  it('is prerender-safe: defaults without touching window/storage on the server', () => {
+    const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+    const matchMedia = jest.fn();
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      configurable: true,
+      value: matchMedia,
+    });
+    TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: 'server' }] });
+
+    const service = TestBed.inject(ThemeService);
+
+    expect(service.theme()).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(matchMedia).not.toHaveBeenCalled();
+
+    service.setTheme('light');
+    expect(service.theme()).toBe('light');
+    expect(setItemSpy).not.toHaveBeenCalled();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+
+    setItemSpy.mockRestore();
   });
 
   it('setTheme keeps working when localStorage.setItem throws', () => {
