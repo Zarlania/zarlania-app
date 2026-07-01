@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 import { LandingComponent } from './landing.component';
 
 describe('LandingComponent', () => {
@@ -43,5 +44,23 @@ describe('LandingComponent', () => {
   it('names Magic: The Gathering as the first supported collection', () => {
     const el = render();
     expect(el.textContent).toContain('Magic: The Gathering');
+  });
+
+  it('sets the SEO document title', () => {
+    render();
+    expect(TestBed.inject(Title).getTitle()).toBe('Zarlania — Command every collection you own');
+  });
+
+  it('sets description and social meta tags', () => {
+    render();
+    const meta = TestBed.inject(Meta);
+    expect(meta.getTag('name="description"')?.content).toBe(
+      'Catalog, index, and track the value of your card collections in one vault — starting with Magic: The Gathering.',
+    );
+    expect(meta.getTag('property="og:title"')?.content).toBe(
+      'Zarlania — Command every collection you own',
+    );
+    expect(meta.getTag('property="og:type"')?.content).toBe('website');
+    expect(meta.getTag('name="twitter:card"')?.content).toBe('summary_large_image');
   });
 });
