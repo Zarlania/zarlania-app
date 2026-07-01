@@ -13,22 +13,22 @@ function setup(apiMock: Partial<ApiService>) {
 
 describe('AppComponent', () => {
   it('shows loading initially', () => {
-    const fixture = setup({ getMessage: () => NEVER });
+    const fixture = setup({ getApiInfo: () => NEVER });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Loading');
   });
 
-  it('shows the message on success', () => {
+  it('shows the backend connection on success', () => {
     const fixture = setup({
-      getMessage: () => of('Hello from Zarlania API v2'),
+      getApiInfo: () => of('3.1.0'),
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Hello from Zarlania API v2');
+    expect(fixture.nativeElement.textContent).toContain('Connected to backend (OpenAPI 3.1.0)');
   });
 
   it('shows an error message on failure', () => {
     const fixture = setup({
-      getMessage: () => throwError(() => new Error('fail')),
+      getApiInfo: () => throwError(() => new Error('fail')),
     });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Could not reach the API');

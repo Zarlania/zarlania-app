@@ -12,7 +12,7 @@ import { ApiService } from './api.service';
       } @else if (error()) {
         <p>Could not reach the API.</p>
       } @else {
-        <h1>{{ message() }}</h1>
+        <h1>Connected to backend (OpenAPI {{ apiVersion() }})</h1>
       }
     </main>
   `,
@@ -22,12 +22,12 @@ export class AppComponent implements OnInit {
 
   loading = signal(true);
   error = signal(false);
-  message = signal('');
+  apiVersion = signal('');
 
   ngOnInit(): void {
-    this.api.getMessage().subscribe({
-      next: (msg) => {
-        this.message.set(msg);
+    this.api.getApiInfo().subscribe({
+      next: (version) => {
+        this.apiVersion.set(version);
         this.loading.set(false);
       },
       error: () => {

@@ -18,14 +18,14 @@ describe('ApiService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('GETs the configured base URL and returns the message field', () => {
+  it('GETs the OpenAPI doc endpoint and returns the openapi version', () => {
     let result: string | undefined;
-    service.getMessage().subscribe((msg) => (result = msg));
+    service.getApiInfo().subscribe((version) => (result = version));
 
-    const req = httpMock.expectOne(environment.apiBaseUrl);
+    const req = httpMock.expectOne(`${environment.apiBaseUrl}/v3/api-docs`);
     expect(req.request.method).toBe('GET');
-    req.flush({ message: 'Hello from Zarlania API v2' });
+    req.flush({ openapi: '3.1.0' });
 
-    expect(result).toBe('Hello from Zarlania API v2');
+    expect(result).toBe('3.1.0');
   });
 });
