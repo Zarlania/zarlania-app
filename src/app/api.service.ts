@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../environments/environment';
+import { Account, CreateAccountRequest } from './api.models';
 
 interface ApiDocs {
   openapi: string;
@@ -18,5 +19,10 @@ export class ApiService {
   // is incidental — swap this for a real domain endpoint once one exists on the API.
   getApiInfo(): Observable<string> {
     return this.http.get<ApiDocs>(`${this.baseUrl}/v3/api-docs`).pipe(map((res) => res.openapi));
+  }
+
+  /** Creates an account (a user + their personal organization) via POST /accounts. */
+  createAccount(request: CreateAccountRequest): Observable<Account> {
+    return this.http.post<Account>(`${this.baseUrl}/accounts`, request);
   }
 }
