@@ -11,6 +11,19 @@ npm start        # or: ng serve
 
 Opens at `http://localhost:4200/`. The app reloads automatically on source changes.
 
+## Local full stack (Docker Compose)
+
+Runs this app and [zarlania-api](https://github.com/Zarlania/zarlania-api) together in
+containers, wired for local testing. Requires the API checked out as a sibling directory
+(or set `ZARLANIA_API_DIR`).
+
+```bash
+docker compose up --build
+```
+
+App: `http://localhost:4200` · API: `http://localhost:8080`. See the reference doc
+(`./scripts/ref find "docker compose"`) for how the wiring works.
+
 ## Build
 
 ```bash

@@ -5,6 +5,10 @@ server {
     index        index.html;
 
     location / {
-        try_files $uri $uri/ /index.html;
+        # `/` is served by the prerendered index.html via the `index` directive
+        # ($uri/ match). Client-rendered routes (/signup, /login, /home, unknown
+        # paths) fall back to the CSR app shell so they are not served the
+        # prerendered landing markup.
+        try_files $uri $uri/ /index.csr.html;
     }
 }

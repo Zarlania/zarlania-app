@@ -1,0 +1,22 @@
+# Local full-stack dev: this app plus zarlania-api, wired together.
+# Requires a sibling checkout of zarlania-api (override with ZARLANIA_API_DIR).
+# The browser talks to both published ports, so the app is built with the
+# `local` configuration (apiBaseUrl http://localhost:8080) and the API's CORS
+# allowlist admits the app's origin. See docs/reference for the full flow.
+services:
+  app:
+    build:
+      context: .
+      args:
+        BUILD_CONFIGURATION: local
+    ports:
+      - '4200:8080'
+    depends_on:
+      - api
+
+  api:
+    build: ${ZARLANIA_API_DIR:-../zarlania-api}
+    ports:
+      - '8080:8080'
+    environment:
+      ZARLANIA_CORS_ALLOWED_ORIGINS: 'http://localhost:4200'

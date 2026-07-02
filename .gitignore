@@ -53,3 +53,6 @@ __pycache__/
 *.pyc
 docs/ai-prompts/*
 !docs/ai-prompts/.gitkeep
+
+# Superpowers visual-companion brainstorming scratch files
+.superpowers/

@@ -4,7 +4,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+# `local` targets the docker-compose dev stack (API on http://localhost:8080).
+ARG BUILD_CONFIGURATION=production
+RUN npm run build -- --configuration=$BUILD_CONFIGURATION
 
 # Stage 2: serve with nginx on $PORT
 FROM nginx:1.31-alpine

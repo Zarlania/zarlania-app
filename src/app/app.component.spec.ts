@@ -1,36 +1,85 @@
 import { TestBed } from '@angular/core/testing';
-import { NEVER, of, throwError } from 'rxjs';
+import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
-import { ApiService } from './api.service';
 
-function setup(apiMock: Partial<ApiService>) {
-  TestBed.configureTestingModule({
-    imports: [AppComponent],
-    providers: [{ provide: ApiService, useValue: apiMock }],
+function stubMatchMedia(prefersDark: boolean): void {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    configurable: true,
+    value: (query: string) => ({
+      matches: prefersDark,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }),
   });
-  return TestBed.createComponent(AppComponent);
 }
 
-describe('AppComponent', () => {
-  it('shows loading initially', () => {
-    const fixture = setup({ getApiInfo: () => NEVER });
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Loading');
+describe('AppComponent (shell)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    stubMatchMedia(true);
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
   });
 
-  it('shows the backend connection on success', () => {
-    const fixture = setup({
-      getApiInfo: () => of('3.1.0'),
-    });
+  it('renders the brand logo in a header', () => {
+    const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Connected to backend (OpenAPI 3.1.0)');
+    const header: HTMLElement = fixture.nativeElement.querySelector('header');
+    expect(header).toBeTruthy();
+    expect(header.querySelector('app-logo')).toBeTruthy();
   });
 
-  it('shows an error message on failure', () => {
-    const fixture = setup({
-      getApiInfo: () => throwError(() => new Error('fail')),
-    });
+  it('renders the theme toggle and a router outlet', () => {
+    const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Could not reach the API');
+    expect(fixture.nativeElement.querySelector('app-theme-toggle')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('router-outlet')).toBeTruthy();
+  });
+
+  it('links to signup and login', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const hrefs = Array.from(fixture.nativeElement.querySelectorAll('a')).map((a) =>
+      (a as HTMLAnchorElement).getAttribute('href'),
+    );
+    expect(hrefs).toContain('/signup');
+    expect(hrefs).toContain('/login');
+  });
+
+  it('routes the header nav Features link to the landing with a fragment', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const navHrefs = Array.from(fixture.nativeElement.querySelectorAll('nav.site-nav a')).map((a) =>
+      (a as HTMLAnchorElement).getAttribute('href'),
+    );
+    expect(navHrefs).toContain('/#features');
+  });
+
+  it('renders a footer', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('footer')).toBeTruthy();
+  });
+
+  it('footer shows the current year dynamically', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footer: HTMLElement = fixture.nativeElement.querySelector('footer');
+    expect(footer.textContent).toContain(String(new Date().getFullYear()));
+  });
+
+  it('footer links to signup and login', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footerHrefs = Array.from(fixture.nativeElement.querySelectorAll('footer a')).map((a) =>
+      (a as HTMLAnchorElement).getAttribute('href'),
+    );
+    expect(footerHrefs).toContain('/signup');
+    expect(footerHrefs).toContain('/login');
   });
 });
