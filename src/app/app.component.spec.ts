@@ -51,6 +51,15 @@ describe('AppComponent (shell)', () => {
     expect(hrefs).toContain('/login');
   });
 
+  it('routes the header nav Features link to the landing with a fragment', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const navHrefs = Array.from(fixture.nativeElement.querySelectorAll('nav.site-nav a')).map((a) =>
+      (a as HTMLAnchorElement).getAttribute('href'),
+    );
+    expect(navHrefs).toContain('/#features');
+  });
+
   it('renders a footer', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();

@@ -15,8 +15,8 @@ import { ThemeToggleComponent } from './shared/theme-toggle/theme-toggle.compone
         <span class="brand-name">Zarlania</span>
       </a>
       <nav class="site-nav">
-        <a href="#features">Features</a>
-        <a href="#how-it-works">How it works</a>
+        <a routerLink="/" fragment="features">Features</a>
+        <a routerLink="/" fragment="how-it-works">How it works</a>
       </nav>
       <div class="header-actions">
         <app-theme-toggle />
@@ -37,8 +37,8 @@ import { ThemeToggleComponent } from './shared/theme-toggle/theme-toggle.compone
       <nav class="footer-links" aria-label="Footer">
         <div class="footer-group">
           <span class="footer-heading">Product</span>
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How it works</a>
+          <a routerLink="/" fragment="features">Features</a>
+          <a routerLink="/" fragment="how-it-works">How it works</a>
         </div>
         <div class="footer-group">
           <span class="footer-heading">Account</span>
