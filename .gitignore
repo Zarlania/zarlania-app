@@ -1,0 +1,59 @@
+# --- Dependencies ---
+node_modules/
+.pnp
+.pnp.js
+
+# --- Build output ---
+dist/
+dist-ssr/
+build/
+*.local
+
+# --- Test and coverage output ---
+coverage/
+.vitest/
+*.lcov
+
+# --- Caches ---
+.eslintcache
+.oxlintcache
+.cache/
+.vite/
+.turbo/
+
+# --- IntelliJ IDEA ---
+.idea/
+.idea_modules/
+*.iml
+*.ipr
+*.iws
+out/
+
+# --- VS Code ---
+.vscode/*
+!.vscode/extensions.json
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Local agent + tooling state ---
+.serena/
+.claude/settings.local.json
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+*storybook.log
+storybook-static

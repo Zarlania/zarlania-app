@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same branch; the newest commit is the only one
+# whose result matters.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required to post the coverage comment on pull requests.
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      # Coverage thresholds live in vite.config.ts; this fails below 80%.
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Comment coverage on pull request
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        # Pull requests from forks get a read-only token, so the comment cannot be
+        # posted there. The coverage gate itself already ran in the step above —
+        # this is reporting only, and must not fail the build.
+        continue-on-error: true
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          json-summary-path: ./coverage/coverage-summary.json
+          json-final-path: ./coverage/coverage-final.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: Coverage report
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-report
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  storybook:
+    name: Storybook builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Proves every story still compiles and renders. This is what catches a
+      # component change that breaks its own documentation.
+      - name: Build Storybook
+        run: npm run build-storybook
+
+      - name: Upload Storybook
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: storybook-static
+          path: storybook-static/
+          if-no-files-found: error
+          retention-days: 7
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Build only — this proves the Dockerfile is valid without publishing
+      # anything. Render builds the Static Site itself and never uses this image.
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runtime
+          push: false
+          load: false
+          tags: zarlania-app:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
