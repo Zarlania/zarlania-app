@@ -23,7 +23,7 @@ jobs:
       # Required to publish the SARIF report to the Security tab.
       security-events: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Full history so the scan sees every commit, not just the tip.
           fetch-depth: 0
@@ -31,11 +31,15 @@ jobs:
       # The official gitleaks-action requires a paid licence key for
       # organisation-owned repositories. Running the CLI image directly is
       # functionally identical and free.
+      #
+      # Pinned by digest, not by tag: a tag can be moved to a different image,
+      # and this scan is a security control. The same digest is pinned in
+      # .husky/pre-commit so the hook and CI run byte-identical binaries.
       - name: Run gitleaks
         run: |
           docker run --rm \
             -v "${{ github.workspace }}:/repo" \
-            ghcr.io/gitleaks/gitleaks:v8.30.1 \
+            ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
             detect \
               --source=/repo \
               --config=/repo/.gitleaks.toml \
@@ -46,7 +50,7 @@ jobs:
 
       - name: Upload SARIF report
         if: ${{ !cancelled() }}
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@e0647621c2984b5ed2f768cb892365bf2a616ad1 # v4.37.2
         with:
           sarif_file: gitleaks-report.sarif
           category: gitleaks

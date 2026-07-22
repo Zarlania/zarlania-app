@@ -40,19 +40,19 @@ docker compose --profile prod up     # production-like nginx build on :8081
 
 ## Common tasks
 
-| Command                   | What it does                                                 |
-| ------------------------- | ------------------------------------------------------------ |
-| `npm run dev`             | Dev server with hot module replacement.                      |
-| `npm run verify`          | Type check, lint, format check, and tests. **CI runs this.** |
-| `npm test`                | Runs the tests once.                                         |
-| `npm run test:watch`      | Runs the tests in watch mode.                                |
-| `npm run test:coverage`   | Tests with coverage; fails below 80%.                        |
-| `npm run lint:fix`        | Fixes auto-fixable lint problems.                            |
-| `npm run format`          | Formats the codebase with Prettier.                          |
-| `npm run build`           | Type checks and builds to `dist/`.                           |
-| `npm run preview`         | Serves the production build locally.                         |
-| `npm run storybook`       | Component workshop at <http://localhost:6006>.               |
-| `npm run build-storybook` | Builds the static Storybook to `storybook-static/`.          |
+| Command                   | What it does                                                               |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`             | Dev server with hot module replacement.                                    |
+| `npm run verify`          | Type check, lint, format check, and tests with coverage. **CI runs this.** |
+| `npm test`                | Runs the tests once, without the coverage gate.                            |
+| `npm run test:watch`      | Runs the tests in watch mode.                                              |
+| `npm run test:coverage`   | Tests with coverage; fails below 80%.                                      |
+| `npm run lint:fix`        | Fixes auto-fixable lint problems.                                          |
+| `npm run format`          | Formats the codebase with Prettier.                                        |
+| `npm run build`           | Type checks and builds to `dist/`.                                         |
+| `npm run preview`         | Serves the production build locally.                                       |
+| `npm run storybook`       | Component workshop at <http://localhost:6006>.                             |
+| `npm run build-storybook` | Builds the static Storybook to `storybook-static/`.                        |
 
 ## Configuration
 
@@ -68,7 +68,7 @@ Copy `.env.example` to `.env.local` and adjust.
 
 ## Project layout
 
-```
+```text
 src/
   main.tsx          Entry point; mounts <App /> into #root
   App.tsx           Root component
@@ -113,6 +113,14 @@ or an agent — to see what a component does in isolation.
 Contributions are welcome. **Every change needs a tracking issue**, a branch named
 `<issue-number>-<slug>`, and a pull request titled `#<issue-number> <type>: <description>`.
 CI enforces this. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+
+**File every issue from a template.** Pick bug report, feature request, or chore
+from the [issue chooser](https://github.com/Zarlania/zarlania-app/issues/new/choose),
+keep the title prefix it gives you (`bug: `, `feat: `, `chore: `), and fill in
+each section rather than replacing them with freeform prose. Blank issues are
+disabled, so this happens by default in the UI — but an issue created through
+`gh issue create` or the API bypasses the template and must be written to match
+it by hand.
 
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Security policy](SECURITY.md)

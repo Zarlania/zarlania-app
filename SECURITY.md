@@ -47,8 +47,12 @@ In scope: the source code in this repository and its deployment configuration.
 
 Out of scope: vulnerabilities in third-party dependencies (report those upstream,
 though we do want to hear if we are pinned to a vulnerable version), findings that
-require physical access or a compromised developer machine, and values in
-`VITE_`-prefixed variables, which are public by design.
+require physical access or a compromised developer machine, and _intentionally_
+public values in `VITE_`-prefixed variables.
+
+A secret that has been put into a `VITE_` variable by mistake is very much in
+scope. It is baked into the public bundle, so it is already disclosed — report it
+privately so it can be rotated.
 
 ## Our practices
 

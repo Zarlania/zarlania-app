@@ -42,7 +42,9 @@ body:
     id: actual
     attributes:
       label: Actual behaviour
-      description: Include the full error and any relevant logs.
+      description:
+        Include the error and any relevant logs. Issues here are public — redact
+        API keys, tokens, credentials, and personal data before submitting.
       render: shell
     validations:
       required: true

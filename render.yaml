@@ -6,9 +6,9 @@
 # 15-minute idle spin-down that free web services have, and need no container.
 # The Dockerfile in this repository is for local development only.
 #
-# Deploys are gated on releases, not on pushes: `autoDeploy: false` means Render
-# only ships when .github/workflows/release.yml calls this site's deploy hook
-# after publishing a new version tag.
+# Deploys are gated on releases, not on pushes: `autoDeployTrigger: off` means
+# Render only ships when .github/workflows/release.yml calls this site's deploy
+# hook after publishing a new version tag.
 #
 # First-time setup:
 #   1. In Render, create a Blueprint instance pointing at this repository.
@@ -20,7 +20,9 @@ services:
     name: zarlania-app
     runtime: static
     branch: master
-    autoDeploy: false
+    # Quoted deliberately: unquoted `off` is a boolean in YAML 1.1, and this
+    # field takes the string `off` (alongside `commit` and `checksPass`).
+    autoDeployTrigger: 'off'
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
 
@@ -43,10 +45,23 @@ services:
 
     headers:
       # Hashed asset filenames change whenever content changes, so they can be
-      # cached indefinitely.
+      # cached indefinitely. Listed before the catch-all below because Render
+      # does not document how it resolves two rules that set the same header on
+      # the same request; if it takes the first or the most specific match, this
+      # ordering is the one that keeps assets immutable.
       - path: /assets/*
         name: Cache-Control
         value: public, max-age=31536000, immutable
+
+      # The SPA shell must never be cached: it is served for every client-side
+      # route, and a stale copy references hashed bundles that the next deploy
+      # deletes, leaving users on a blank page until they hard-refresh. This
+      # mirrors what the nginx config does for local and container runs. Worst
+      # case, if Render applies both rules, assets lose their long cache — a
+      # performance regression, never a correctness one.
+      - path: /*
+        name: Cache-Control
+        value: no-cache
       - path: /*
         name: X-Content-Type-Options
         value: nosniff

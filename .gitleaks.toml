@@ -1,5 +1,5 @@
 # Gitleaks configuration. Run locally with:
-#   docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 \
+#   docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
 #     detect --source=/repo --config=/repo/.gitleaks.toml --redact --verbose
 #
 # CI runs the same scan on every push and pull request (.github/workflows/gitleaks.yml).
@@ -10,23 +10,26 @@ title = "zarlania-app gitleaks config"
 [extend]
 useDefault = true
 
-[allowlist]
-description = "Paths and values that are safe by construction"
+# Deliberately no path-based allowlist. Exempting a whole file suppresses every
+# finding in it, so a real credential committed there would sail past both the
+# pull-request scan and the weekly history sweep — including in `.env.example`,
+# one of the files most likely to attract a pasted secret.
+#
+# Note that `useDefault` inherits the upstream global allowlist, which already
+# excludes `package-lock.json` and `gitleaks.toml` wholesale. A project config
+# can add allowlist entries but cannot subtract inherited ones, so those two
+# files are not scanned no matter what appears here — repeating them below would
+# only imply this project made a choice it did not make. Verified with a canary:
+# a known-detectable key is reported in `.env.example` and ignored in
+# `package-lock.json`. This is acceptable because npm keeps registry credentials
+# in `.npmrc` (scanned, and gitignored) rather than in the lockfile. Revisit if
+# this project ever resolves packages from an authenticated private registry.
 
-paths = [
-  # Example environment files exist to be committed and hold no real values.
-  '''\.env\.example$''',
-  # Lockfiles contain integrity hashes that look like high-entropy secrets.
-  '''(^|/)package-lock\.json$''',
-  # This file necessarily contains patterns that resemble secrets.
-  '''(^|/)\.gitleaks\.toml$''',
-]
-
+[[allowlists]]
+description = "Common placeholder values used in documentation and examples"
 regexes = [
-  # Common placeholder values used in documentation and examples.
   '''(?i)(changeme|placeholder|example|dummy|your[-_]?(secret|token|key)|xxx+)''',
 ]
 
-# Add project-specific exceptions here as they come up. Prefer a narrow path or
-# regex over disabling a rule outright, and never allowlist a real credential —
-# rotate it instead.
+# Add project-specific exceptions here as they come up. Prefer a narrow regex
+# over a path, and never allowlist a real credential — rotate it instead.

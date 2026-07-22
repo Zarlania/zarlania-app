@@ -32,23 +32,23 @@ application written in TypeScript. The backend lives in a separate repository,
 
 ## Commands
 
-| Command                   | Purpose                                                             |
-| ------------------------- | ------------------------------------------------------------------- |
-| `npm run verify`          | Type check, lint, format check, and test. **This is what CI runs.** |
-| `npm run dev`             | Dev server with hot reload on port 5173.                            |
-| `npm test`                | Tests once.                                                         |
-| `npm run test:coverage`   | Tests with coverage; fails below 80%.                               |
-| `npm run lint:fix`        | Fix auto-fixable lint problems.                                     |
-| `npm run format`          | Format with Prettier. Run before committing.                        |
-| `npm run build`           | Type check and build to `dist/`.                                    |
-| `npm run storybook`       | Component workshop on port 6006.                                    |
-| `npm run build-storybook` | Static Storybook build. CI runs this on every PR.                   |
+| Command                   | Purpose                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------- |
+| `npm run verify`          | Type check, lint, format check, and test with coverage. **This is what CI runs.** |
+| `npm run dev`             | Dev server with hot reload on port 5173.                                          |
+| `npm test`                | Tests once, without the coverage gate.                                            |
+| `npm run test:coverage`   | Tests with coverage; fails below 80%.                                             |
+| `npm run lint:fix`        | Fix auto-fixable lint problems.                                                   |
+| `npm run format`          | Format with Prettier. Run before committing.                                      |
+| `npm run build`           | Type check and build to `dist/`.                                                  |
+| `npm run storybook`       | Component workshop on port 6006.                                                  |
+| `npm run build-storybook` | Static Storybook build. CI runs this on every PR.                                 |
 
 Run `npm run verify` before declaring any change complete.
 
 ## Layout
 
-```
+```text
 src/
   main.tsx          Entry point; mounts <App /> into #root
   App.tsx           Root component
@@ -138,20 +138,30 @@ Applied to React and TypeScript rather than classes:
 
 ## Workflow rules that CI enforces
 
-These are not suggestions; the `PR Lint` workflow fails the build if they are not
-followed.
+These are not suggestions. The `PR Lint` workflow fails the build on every rule
+below except the issue-template one, which no workflow can check — GitHub does
+not expose which template an issue was filed from.
 
 1. **Every change requires a tracking issue.** If there is no issue, one must be
    created before opening a pull request.
-2. **Branch name:** `<issue-number>-<slug>`, e.g. `42-add-collection-list`.
-3. **Pull request title:** `#<issue-number> <type>: <description>`, e.g.
+2. **Every issue is filed from a template** in `.github/ISSUE_TEMPLATE/` — bug
+   report, feature request, or chore. Keep the template's title prefix
+   (`bug: `, `feat: `, `chore: `), fill in every section it defines rather than
+   substituting freeform prose, and keep the labels it applies. Blank issues are
+   disabled, so an issue opened through the UI already conforms; one created
+   through the API or `gh issue create` must be written to match the template by
+   hand. This is a review expectation, not a CI check — nothing fails the build
+   if you skip it, which is exactly why it is written down here.
+3. **Branch name:** `<issue-number>-<slug>`, e.g. `42-add-collection-list`.
+4. **Pull request title:** `#<issue-number> <type>: <description>`, e.g.
    `#42 feat: add collection list`. Types: `feat`, `fix`, `chore`, `docs`,
    `refactor`, `perf`, `test`, `build`, `ci`, `style`, `revert`.
-4. **Pull request body** must contain `Closes #<issue-number>`.
-5. All three issue references must match, and the issue must be open.
-6. Never commit directly to `master`.
-7. Apply a `major`, `minor` or `patch` label — it sets the released version.
-8. Test coverage must stay at or above 80%.
+5. **Pull request body** must contain `Closes #<issue-number>`.
+6. All three issue references must match, and the issue must be open.
+7. Never commit directly to `master`.
+8. Apply a `major`, `minor` or `patch` label — it sets the released version.
+   The `Release label present` job fails without one.
+9. Test coverage must stay at or above 80%.
 
 ## Versioning
 

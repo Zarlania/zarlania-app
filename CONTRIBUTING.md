@@ -30,13 +30,20 @@ issue number.
 ## Workflow
 
 1. **Find or open an issue.** Use the [issue templates](https://github.com/Zarlania/zarlania-app/issues/new/choose)
-   — bug report, feature request, or chore. For open-ended ideas, start a
-   [discussion](https://github.com/Zarlania/zarlania-app/discussions) instead.
+   — bug report, feature request, or chore. Keep the title prefix the template
+   gives you (`bug: `, `feat: `, `chore: `), answer every section it asks for
+   instead of replacing them with freeform prose, and leave the labels it
+   applies in place. Creating an issue with `gh issue create` or the API skips
+   the template entirely, so write the body to match it by hand. For open-ended
+   ideas, start a [discussion](https://github.com/Zarlania/zarlania-app/discussions)
+   instead.
 2. **Branch off `master`**, naming the branch after the issue.
+
    ```bash
    git switch master && git pull
    git switch -c 42-add-collection-list
    ```
+
 3. **Make the change**, with tests.
 4. **Verify locally** — see below.
 5. **Open a pull request** against `master` using the required title format.
