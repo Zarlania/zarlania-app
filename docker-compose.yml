@@ -17,7 +17,7 @@ services:
       - '${APP_PORT:-5173}:5173'
     environment:
       # Placeholder: the app does not call zarlania-api yet. See .env.example.
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+      VITE_ZARLANIA_API_URL: ${VITE_ZARLANIA_API_URL:-http://localhost:8080}
     volumes:
       # Bind-mount the source for hot reload, but keep the container's own
       # node_modules — the host's may hold platform-specific binaries.
@@ -34,7 +34,7 @@ services:
       dockerfile: Dockerfile
       target: runtime
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_ZARLANIA_API_URL: ${VITE_ZARLANIA_API_URL:-http://localhost:8080}
         APP_VERSION: ${APP_VERSION:-0.0.0-dev}
     image: zarlania-app:local
     container_name: zarlania-app-prod

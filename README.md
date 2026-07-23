@@ -58,9 +58,9 @@ docker compose --profile prod up     # production-like nginx build on :8081
 
 Copy `.env.example` to `.env.local` and adjust.
 
-| Variable       | Default                 | Description                   |
-| -------------- | ----------------------- | ----------------------------- |
-| `VITE_API_URL` | `http://localhost:8080` | Base URL of the Zarlania API. |
+| Variable                | Default                 | Description                   |
+| ----------------------- | ----------------------- | ----------------------------- |
+| `VITE_ZARLANIA_API_URL` | `http://localhost:8080` | Base URL of the Zarlania API. |
 
 > Only `VITE_`-prefixed variables reach the browser, and they are **baked into
 > the bundle at build time**. Treat every one of them as public — never put a

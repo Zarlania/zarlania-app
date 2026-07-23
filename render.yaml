@@ -33,7 +33,7 @@ services:
       # Placeholder: set this to the zarlania-api URL once that service is
       # deployed. `sync: false` means the value is entered in the Render
       # dashboard rather than committed here.
-      - key: VITE_API_URL
+      - key: VITE_ZARLANIA_API_URL
         sync: false
 
     # Client-side routing: every unknown path must serve index.html so the app
