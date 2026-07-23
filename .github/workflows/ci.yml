@@ -23,7 +23,9 @@ jobs:
   # which resolves from scratch. That is how a broken build once reached
   # production. This job reproduces the from-scratch resolve and fails here
   # instead, without installing node_modules (--package-lock-only) or writing
-  # anything (--dry-run).
+  # anything (--dry-run). --ignore-scripts is required: npm otherwise runs the
+  # `prepare` lifecycle (husky), which fails here because no node_modules is
+  # installed — an unrelated error that would mask the check.
   resolve-check:
     name: Dependency graph resolves
     runs-on: ubuntu-latest
@@ -39,7 +41,7 @@ jobs:
           cache: npm
 
       - name: Verify dependency graph resolves from scratch
-        run: npm install --package-lock-only --dry-run
+        run: npm install --package-lock-only --dry-run --ignore-scripts
 
   build:
     name: Build & test
