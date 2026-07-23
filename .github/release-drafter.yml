@@ -1,0 +1,84 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+# There is no CHANGELOG.md in this repository by design — the GitHub Release
+# notes generated here are the changelog.
+template: |
+  ## What's changed
+
+  $CHANGES
+
+  **Full changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+# Grouping and versioning are kept apart. The `changelog` categories below decide
+# only which heading a pull request appears under; the `version-resolver` entries
+# after them decide only the version. Carrying `semver-increment` on a category
+# as well would let a descriptive label outrank the bump label the author chose —
+# `patch` + `feature` would resolve minor, because the largest increment of every
+# contributing category wins.
+#
+# Categories are not exclusive: a pull request matching two of them is listed
+# under both headings.
+#
+# Every label named below must exist in `.github/labels.yml`, which is the source
+# of truth and deletes anything not listed there. A category matching on a label
+# that does not exist is silently unreachable — its heading simply never renders.
+categories:
+  - title: 'Breaking changes'
+    when:
+      labels: [breaking]
+
+  - title: 'Features'
+    when:
+      labels: [feature, enhancement]
+
+  - title: 'Bug fixes'
+    when:
+      labels: [bug]
+
+  - title: 'Documentation'
+    when:
+      labels: [documentation]
+
+  - title: 'Maintenance'
+    when:
+      labels: [chore, refactor, ci, build, test]
+
+  - title: 'Dependencies'
+    collapse-after: 5
+    when:
+      labels: [dependencies]
+
+  # `major`, `minor` and `patch` set the version and nothing else. They say how
+  # big a change is, never what kind, so they must not group it — pr-lint.yml
+  # requires one on every pull request, so listing them above would file almost
+  # every change under two headings at once. Grouping comes from the descriptive
+  # labels; these only carry the bump.
+  - type: version-resolver
+    semver-increment: major
+    when:
+      label: major
+
+  - type: version-resolver
+    semver-increment: minor
+    when:
+      label: minor
+
+  - type: version-resolver
+    semver-increment: patch
+    when:
+      label: patch
+
+  # Replaces the former top-level `exclude-labels`.
+  - type: pre-exclude
+    when:
+      label: skip-changelog
+
+change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
+# Escape characters that would otherwise be interpreted as markdown in titles.
+change-title-escapes: '\<*_&`#@'
+
+# No top-level `version-resolver` block: the bump comes from the
+# `type: version-resolver` categories above. When a pull request matches none of
+# them, release-drafter falls back to a patch bump, which is the same behaviour
+# the removed `default: patch` gave.

@@ -1,0 +1,108 @@
+version: 2
+
+updates:
+  # ----- npm -----
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - typescript
+    commit-message:
+      prefix: 'chore(deps)'
+      prefix-development: 'chore(deps-dev)'
+    groups:
+      # React and its type definitions must move together — a mismatch between
+      # react and @types/react breaks the build.
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+        update-types:
+          - minor
+          - patch
+      vite:
+        patterns:
+          - 'vite'
+          - '@vitejs/*'
+          - 'vitest'
+          - '@vitest/*'
+        update-types:
+          - minor
+          - patch
+      linting:
+        patterns:
+          - 'prettier'
+          - 'eslint*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - '@typescript-eslint/*'
+        update-types:
+          - minor
+          - patch
+      testing:
+        patterns:
+          - '@testing-library/*'
+          - 'jsdom'
+        update-types:
+          - minor
+          - patch
+      types:
+        patterns:
+          - '@types/*'
+        update-types:
+          - minor
+          - patch
+      # Everything else that is not a major bump, so routine upkeep is one PR.
+      minor-and-patch:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+  # ----- GitHub Actions -----
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      actions:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+  # ----- Docker base images -----
+  - package-ecosystem: docker
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      docker-images:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch

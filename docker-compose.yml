@@ -1,0 +1,43 @@
+# Local development only. Render builds the Static Site itself and does not read
+# this file.
+#
+#   docker compose up                    Vite dev server with hot reload on :5173
+#   docker compose --profile prod up     production-like nginx build on :8081
+#   docker compose down                  stop and remove containers
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    image: zarlania-app:dev
+    container_name: zarlania-app
+    ports:
+      - '${APP_PORT:-5173}:5173'
+    environment:
+      # Placeholder: the app does not call zarlania-api yet. See .env.example.
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    volumes:
+      # Bind-mount the source for hot reload, but keep the container's own
+      # node_modules — the host's may hold platform-specific binaries.
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  # Opt-in: `docker compose --profile prod up app-prod`. Verifies the built
+  # bundle and the nginx SPA routing before relying on them.
+  app-prod:
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        APP_VERSION: ${APP_VERSION:-0.0.0-dev}
+    image: zarlania-app:local
+    container_name: zarlania-app-prod
+    ports:
+      - '${APP_PROD_PORT:-8081}:80'
+    restart: unless-stopped

@@ -1,0 +1,73 @@
+# Render Blueprint — infrastructure as code for this repository.
+# https://render.com/docs/blueprint-spec
+#
+# This app deploys as a Static Site: Render runs the build and serves the
+# resulting `dist/` from its CDN. Static Sites are free, are not subject to the
+# 15-minute idle spin-down that free web services have, and need no container.
+# The Dockerfile in this repository is for local development only.
+#
+# Deploys are gated on releases, not on pushes: `autoDeployTrigger: off` means
+# Render only ships when .github/workflows/release.yml calls this site's deploy
+# hook after publishing a new version tag.
+#
+# First-time setup:
+#   1. In Render, create a Blueprint instance pointing at this repository.
+#   2. Open the created site -> Settings -> Deploy Hook, copy the URL.
+#   3. Add it to this repository as the RENDER_DEPLOY_HOOK_URL secret.
+
+services:
+  - type: web
+    name: zarlania-app
+    runtime: static
+    branch: master
+    # Quoted deliberately: unquoted `off` is a boolean in YAML 1.1, and this
+    # field takes the string `off` (alongside `commit` and `checksPass`).
+    autoDeployTrigger: 'off'
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+
+    envVars:
+      # VITE_ variables are baked into the bundle at build time and are PUBLIC.
+      # Never put a secret here.
+      #
+      # Placeholder: set this to the zarlania-api URL once that service is
+      # deployed. `sync: false` means the value is entered in the Render
+      # dashboard rather than committed here.
+      - key: VITE_API_URL
+        sync: false
+
+    # Client-side routing: every unknown path must serve index.html so the app
+    # can route it. Without this, a hard refresh on any sub-path returns 404.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+    headers:
+      # Hashed asset filenames change whenever content changes, so they can be
+      # cached indefinitely. Listed before the catch-all below because Render
+      # does not document how it resolves two rules that set the same header on
+      # the same request; if it takes the first or the most specific match, this
+      # ordering is the one that keeps assets immutable.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+      # The SPA shell must never be cached: it is served for every client-side
+      # route, and a stale copy references hashed bundles that the next deploy
+      # deletes, leaving users on a blank page until they hard-refresh. This
+      # mirrors what the nginx config does for local and container runs. Worst
+      # case, if Render applies both rules, assets lose their long cache — a
+      # performance regression, never a correctness one.
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin

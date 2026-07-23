@@ -1,0 +1,13 @@
+# Lints and formats only the staged files. Installed automatically by the
+# `prepare` script when you run `npm install`.
+npx lint-staged
+
+# Scan staged changes for secrets, mirroring the CI gitleaks check. Skipped
+# silently when Docker is unavailable so the hook never blocks on tooling.
+#
+# Digest pin for gitleaks v8.30.1. Keep it in step with the same digest in
+# .github/workflows/gitleaks.yml, so a commit that passes here passes CI.
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+  docker run --rm -v "$(pwd):/repo" ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+    protect --staged --source=/repo --config=/repo/.gitleaks.toml --redact --verbose
+fi

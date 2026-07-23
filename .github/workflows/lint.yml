@@ -1,0 +1,99 @@
+name: Lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: lint-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: YAML, Markdown, workflows, Docker and labels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Both linters are pinned to an exact version rather than tracking latest.
+      # A new upstream release can enable a rule by default and turn an
+      # unrelated pull request red — markdownlint's MD060 did exactly that while
+      # this workflow was being written. Bump these deliberately.
+      #
+      # Dependabot cannot see these versions: neither is declared in a manifest
+      # it parses, so they need updating by hand.
+      - name: Lint YAML
+        # --strict promotes warnings to errors. The config switches off every
+        # cosmetic rule, so anything left is worth failing for.
+        run: |
+          pipx install yamllint==1.38.0
+          yamllint --strict -c .yamllint.yml .
+
+      - name: Lint Markdown
+        # Config, including which files are covered, lives in
+        # .markdownlint-cli2.jsonc.
+        run: npx --yes markdownlint-cli2@0.23.1
+
+      # A release-drafter category matching a label that does not exist fails
+      # silently: no error, the heading simply never renders. "Breaking changes"
+      # sat dead behind an undefined `breaking` label because nothing checked
+      # this. .github/labels.yml is the source of truth and deletes any label not
+      # listed in it, so a label the drafter matches on but labels.yml omits can
+      # never reach a pull request.
+      - name: Check release-drafter labels are defined
+        run: |
+          pip install --quiet pyyaml==6.0.3
+          python3 - <<'PY'
+          import sys, yaml
+
+          with open('.github/labels.yml') as f:
+              defined = {label['name'] for label in yaml.safe_load(f)}
+          with open('.github/release-drafter.yml') as f:
+              categories = yaml.safe_load(f).get('categories', [])
+
+          referenced = set()
+          for category in categories:
+              conditions = category.get('when', [])
+              if isinstance(conditions, dict):
+                  conditions = [conditions]
+              # `labels`/`label` directly on a category are the deprecated
+              # shorthand; release-drafter still honours them, so check both.
+              for source in [category, *conditions]:
+                  referenced.update(source.get('labels', []))
+                  if source.get('label'):
+                      referenced.add(source['label'])
+
+          missing = sorted(referenced - defined)
+          if missing:
+              print(f"::error file=.github/release-drafter.yml::Matched by release-drafter but "
+                    f"missing from .github/labels.yml: {', '.join(missing)}")
+              sys.exit(1)
+          print(f"All {len(referenced)} labels matched by release-drafter are defined.")
+          PY
+
+      # Lints workflow files and the shell inside every `run:` block (actionlint
+      # bundles shellcheck). This is what catches an `on:` typo that silently
+      # stops a workflow triggering, or a shell mistake CI would otherwise run
+      # blind.
+      - name: Lint workflows and their shell
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+        with:
+          # Pin the actionlint tool, not just the wrapper action: this action's
+          # `version` input defaults to `latest`, which would let a new upstream
+          # release fail unchanged PRs — exactly what the YAML and Markdown
+          # linters above are pinned to avoid.
+          version: 1.7.12
+
+      # The Dockerfile is dev/CI-only (Render builds the Static Site itself), but
+      # it still builds in CI, so it is held to the same bar. hadolint also
+      # shellchecks each `RUN` line.
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5 # v3.3.0
+        with:
+          dockerfile: Dockerfile
