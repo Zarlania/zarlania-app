@@ -35,7 +35,7 @@ ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
 
 # ---------- Production-like runtime ----------
-FROM nginx:1.29-alpine AS runtime
+FROM nginx:1.31-alpine AS runtime
 
 ARG APP_VERSION=0.0.0-dev
 LABEL org.opencontainers.image.title="zarlania-app" \
