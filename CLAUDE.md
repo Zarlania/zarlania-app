@@ -18,17 +18,17 @@ application written in TypeScript. The backend lives in a separate repository,
 
 ## Stack
 
-| Concern    | Choice                                          |
-| ---------- | ----------------------------------------------- |
-| Language   | TypeScript 6                                    |
-| Framework  | React 19                                        |
-| Build      | Vite 8                                          |
-| Testing    | Vitest and Testing Library, 80% coverage floor  |
-| Docs/UI    | Storybook 10, with the a11y addon               |
-| Linting    | ESLint (flat config)                            |
-| Formatting | Prettier                                        |
-| Container  | Docker, with Compose for local development      |
-| Hosting    | Render Static Site, configured in `render.yaml` |
+| Concern    | Choice                                                |
+| ---------- | ----------------------------------------------------- |
+| Language   | TypeScript 6                                          |
+| Framework  | React 19                                              |
+| Build      | Vite 8                                                |
+| Testing    | Vitest and Testing Library, 80% coverage floor        |
+| Docs/UI    | Storybook 10, with the a11y addon                     |
+| Linting    | ESLint (flat, type-aware, jsx-a11y; warnings blocked) |
+| Formatting | Prettier                                              |
+| Container  | Docker, with Compose for local development            |
+| Hosting    | Render Static Site, configured in `render.yaml`       |
 
 ## Commands
 
