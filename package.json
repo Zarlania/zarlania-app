@@ -79,7 +79,7 @@
     "lint-staged": "^17.1.1",
     "prettier": "^3.6.2",
     "storybook": "^10.5.3",
-    "typescript": "~6.0.2",
+    "typescript": "~7.0.2",
     "typescript-eslint": "^8.65.0",
     "vite": "^8.1.1",
     "vitest": "^4.1.10"
