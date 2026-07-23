@@ -17,6 +17,30 @@ permissions:
   contents: read
 
 jobs:
+  # `npm ci` installs the frozen lockfile without re-resolving peer
+  # dependencies, so an unsatisfiable peer graph — @eslint/js@10 pinned against
+  # eslint@9, say — passes every job that uses it and only fails on Render,
+  # which resolves from scratch. That is how a broken build once reached
+  # production. This job reproduces the from-scratch resolve and fails here
+  # instead, without installing node_modules (--package-lock-only) or writing
+  # anything (--dry-run).
+  resolve-check:
+    name: Dependency graph resolves
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Verify dependency graph resolves from scratch
+        run: npm install --package-lock-only --dry-run
+
   build:
     name: Build & test
     runs-on: ubuntu-latest
