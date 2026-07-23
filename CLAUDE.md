@@ -25,7 +25,7 @@ application written in TypeScript. The backend lives in a separate repository,
 | Build      | Vite 8                                          |
 | Testing    | Vitest and Testing Library, 80% coverage floor  |
 | Docs/UI    | Storybook 10, with the a11y addon               |
-| Linting    | oxlint                                          |
+| Linting    | ESLint (flat config)                            |
 | Formatting | Prettier                                        |
 | Container  | Docker, with Compose for local development      |
 | Hosting    | Render Static Site, configured in `render.yaml` |
@@ -120,7 +120,7 @@ Applied to React and TypeScript rather than classes:
 
 ## Conventions
 
-- **Formatting and linting are not judgement calls.** Prettier and oxlint decide;
+- **Formatting and linting are not judgement calls.** Prettier and ESLint decide;
   `npm run verify` fails on deviation. Do not hand-format.
 - Function components with hooks only. No class components.
 - Query in tests by accessible role or label, not by test ID. A test that breaks

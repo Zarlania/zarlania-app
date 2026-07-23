@@ -124,7 +124,7 @@ rather than by unit tests.
 
 ## Code standards
 
-Formatting and linting are handled by Prettier and oxlint, so there is no need to
+Formatting and linting are handled by Prettier and ESLint, so there is no need to
 discuss them in review. Beyond that, this project holds itself to a few
 principles — the full version, with examples, is in [CLAUDE.md](CLAUDE.md).
 

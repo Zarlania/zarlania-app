@@ -16,7 +16,6 @@ coverage/
 
 # --- Caches ---
 .eslintcache
-.oxlintcache
 .cache/
 .vite/
 .turbo/
