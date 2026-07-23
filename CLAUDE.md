@@ -146,7 +146,7 @@ not expose which template an issue was filed from.
    created before opening a pull request.
 2. **Every issue is filed from a template** in `.github/ISSUE_TEMPLATE/` — bug
    report, feature request, or chore. Keep the template's title prefix
-   (`bug: `, `feat: `, `chore: `), fill in every section it defines rather than
+   (`bug:`, `feat:`, `chore:`), fill in every section it defines rather than
    substituting freeform prose, and keep the labels it applies. Blank issues are
    disabled, so an issue opened through the UI already conforms; one created
    through the API or `gh issue create` must be written to match the template by

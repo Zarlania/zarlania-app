@@ -31,7 +31,7 @@ issue number.
 
 1. **Find or open an issue.** Use the [issue templates](https://github.com/Zarlania/zarlania-app/issues/new/choose)
    — bug report, feature request, or chore. Keep the title prefix the template
-   gives you (`bug: `, `feat: `, `chore: `), answer every section it asks for
+   gives you (`bug:`, `feat:`, `chore:`), answer every section it asks for
    instead of replacing them with freeform prose, and leave the labels it
    applies in place. Creating an issue with `gh issue create` or the API skips
    the template entirely, so write the body to match it by hand. For open-ended

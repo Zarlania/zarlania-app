@@ -116,7 +116,7 @@ CI enforces this. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 **File every issue from a template.** Pick bug report, feature request, or chore
 from the [issue chooser](https://github.com/Zarlania/zarlania-app/issues/new/choose),
-keep the title prefix it gives you (`bug: `, `feat: `, `chore: `), and fill in
+keep the title prefix it gives you (`bug:`, `feat:`, `chore:`), and fill in
 each section rather than replacing them with freeform prose. Blank issues are
 disabled, so this happens by default in the UI — but an issue created through
 `gh issue create` or the API bypasses the template and must be written to match
