@@ -67,6 +67,28 @@ updates:
           - minor
           - patch
 
+    # Major bumps that the ecosystem cannot yet install cleanly. Each rule holds
+    # dependabot off — no weekly PR, no notification — until the named upstream
+    # peer ships support. Remove the rule (and let the grouped bump flow) once
+    # the condition is met. Verified 2026-07-22.
+    ignore:
+      # eslint 10 is blocked: eslint-plugin-jest-dom (5.5.0),
+      # eslint-plugin-jsx-a11y (6.10.2) and eslint-plugin-react (7.37.5) all cap
+      # their eslint peer at 9 in their latest release. Remove once all three
+      # declare eslint 10 support. Tracked in #11.
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      # @eslint/js is published in lockstep with eslint and must never jump a
+      # major ahead of it: @eslint/js@10 landing while eslint stayed at 9 is what
+      # broke the Render deploy (#18). Lift this together with the eslint rule.
+      - dependency-name: '@eslint/js'
+        update-types: ['version-update:semver-major']
+      # typescript 7 is blocked: typescript-eslint (8.65.0) caps its typescript
+      # peer at <6.1.0. Remove once typescript-eslint supports TypeScript 7.
+      # Tracked in #15.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+
   # ----- GitHub Actions -----
   - package-ecosystem: github-actions
     directory: '/'
