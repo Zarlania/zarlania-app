@@ -15,7 +15,8 @@ export default function App() {
       <footer className="footer">
         {/*
           Placeholder: this app does not talk to zarlania-api yet. When it does,
-          read the base URL from import.meta.env.VITE_API_URL (see .env.example).
+          read the base URL from import.meta.env.VITE_ZARLANIA_API_URL (see
+          .env.example).
         */}
         <a
           href="https://github.com/Zarlania/zarlania-app"
