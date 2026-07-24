@@ -45,6 +45,10 @@ jobs:
 
   build:
     name: Build & test
+    # Gate on resolve-check: npm ci here installs the frozen lockfile and can
+    # pass on a peer graph that a from-scratch resolve rejects, so there is no
+    # point building or testing until resolve-check confirms the graph is sound.
+    needs: resolve-check
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -102,6 +106,7 @@ jobs:
 
   storybook:
     name: Storybook builds
+    needs: resolve-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -131,6 +136,8 @@ jobs:
 
   docker:
     name: Docker image builds
+    # The image runs npm ci during its build, so it depends on the same graph.
+    needs: resolve-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
