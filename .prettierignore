@@ -5,3 +5,10 @@ package-lock.json
 *.min.js
 *.min.css
 storybook-static/
+
+# The docs system and agent files are governed by markdownlint (and the
+# reference tooling generates their Markdown tables), not Prettier. Keeping
+# Prettier out of them avoids reformatting the tooling's generated output and
+# keeps these files byte-identical to zarlania-api.
+docs/
+.claude/
