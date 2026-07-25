@@ -54,6 +54,9 @@
 - name: typescript
   color: '3178c6'
   description: TypeScript and React code
+- name: python
+  color: '3572a5'
+  description: Reference docs tooling code
 - name: ui
   color: 'f9d0c4'
   description: Visual design, layout and styling
