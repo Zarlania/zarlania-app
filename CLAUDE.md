@@ -64,6 +64,36 @@ Tests and stories are colocated with the code they cover — `Foo.tsx` sits next
 `Foo.test.tsx` and `Foo.stories.tsx`, not in parallel `__tests__` or `stories`
 trees.
 
+## Documentation (`docs/`)
+
+- **`docs/references/`** — living documentation of how the app works, for humans
+  and agents. Numbered `NNNNNN-<slug>.md` files (6-digit id) with YAML
+  frontmatter as the source of truth and a generated sister table; a generated
+  index lives in `docs/references/README.md`. Keep these current as code changes.
+  Do **not** hand-edit generated tables or the index, and do **not** hand-write
+  frontmatter — use the tooling or the skills. Reference docs are **not** ADRs.
+  Every tag must exist in `docs/references/_tags.md`, and tags stay alphabetical.
+- **Tooling** lives in `docs/tooling` (Python — the one part of this repo that is
+  not TypeScript). Lean on it to save tokens:
+  `references_cli.py create|sync|validate|search|meta`. `validate` runs in CI.
+  Tests live beside it and must stay ≥80% coverage; ruff and mypy gate it too.
+- **Skills:** use `creating-reference-docs`, `updating-reference-docs`, and
+  `searching-reference-docs`. Create/update finalize by dispatching the
+  `technical-writer` agent, which fixes prose, checks the `description`/`tags`
+  fit the content, and resolves cross-doc repetition or contradiction. The agent
+  runs at authoring time only, never in CI.
+- **`docs/superpowers/`** — Superpowers `plans/` and `specs/`. These are
+  historical snapshots. After a PR opens, **ignore review comments on
+  `docs/superpowers/plans/**` and `docs/superpowers/specs/**`** — the code may
+  legitimately diverge, and snapshots are never backfilled. This does not affect
+  Superpowers' own plan/spec reviews during the implementation they drive.
+- **`docs/ai-prompts/`** — personal scratch for AI prompts. Contents are
+  gitignored (directory tracked via `.gitkeep`); excluded from all linters.
+- **Formatting:** Prettier ignores `docs/` and `.claude/` — markdownlint and the
+  reference tooling govern those (the tooling generates their Markdown tables).
+- **ADRs** are coming in a future session with their own template, tags, README,
+  skills, and CI checks, reusing the same tooling library. Do not pre-empt them.
+
 ## Engineering principles
 
 These are the standards this repository holds itself to. Code that violates them
