@@ -6,8 +6,8 @@
 - **Spec chain:** 6 of 7. Predecessor:
   [spec 5 — theming and the landing page](2026-07-25-theming-landing-page-design.md)
   (the full seven-part decomposition is in spec 1, in `zarlania-api`).
-  Successor: spec 7, *org flows* (written after this one; it references this
-  spec). Depends on backend spec 2 —
+  Successor: [spec 7 — org flows](2026-07-26-org-flows-design.md). Depends
+  on backend spec 2 —
   [users, personal organizations, and core authentication](https://github.com/Zarlania/zarlania-api/blob/master/docs/superpowers/specs/2026-07-25-users-personal-orgs-core-auth-design.md)
   — being live.
 
