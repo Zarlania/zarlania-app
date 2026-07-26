@@ -6,9 +6,9 @@
 - **Spec chain:** 5 of 7 — the first frontend spec. Predecessor:
   [spec 4 — admin and machine tokens](https://github.com/Zarlania/zarlania-api/blob/master/docs/superpowers/specs/2026-07-25-admin-machine-tokens-design.md)
   in `zarlania-api` (the full seven-part decomposition is in spec 1 there).
-  Successor: spec 6, *auth flows* (written after this one; it references this
-  spec). This spec has no backend dependency and may be implemented in
-  parallel with backend specs 2–4.
+  Successor: [spec 6 — auth flows](2026-07-26-auth-flows-design.md). This
+  spec has no backend dependency and may be implemented in parallel with
+  backend specs 2–4.
 
 ## Purpose
 
