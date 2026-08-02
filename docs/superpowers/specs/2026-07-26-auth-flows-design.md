@@ -145,3 +145,28 @@ components are exercised together against realistic RFC 9457 bodies.
 | Logout hygiene | Token + full query-cache wipe | Trusting cache keys to scope private data |
 | Error copy | Central code→copy module, clarity over flavor | Per-component messages; raw codes in UI |
 | Home content | Static vault-card constant | Inventing a premature vaults API |
+
+## Amendment — the api's auth as implemented (2026-08-02)
+
+Spec 2's implementation (zarlania-api PR #33) shipped CSRF protection its
+spec text said would not exist, and this spec's session choreography has to
+carry it (tracked as issue #45):
+
+- **`POST /auth/refresh` and `POST /auth/logout` are CSRF-guarded.** They
+  are the api's only cookie-authenticated routes; both answer `403` unless
+  the request carries a CSRF token header. Everything else here
+  authenticates with the bearer header and needs nothing new.
+- **The token comes from `GET /auth/csrf`**, called with
+  `credentials: 'include'`. The response is
+  `{ headerName, token }` — echo `token` in the header `headerName` names
+  (today `X-XSRF-TOKEN`; read it from the response rather than hardcoding).
+  The CSRF cookie itself is `HttpOnly` on the api's host, so
+  `document.cookie` cannot substitute — which is why the endpoint exists.
+- **Boot choreography grows one step:** `GET /auth/csrf` →
+  `POST /auth/refresh`. The token is stable for as long as the CSRF cookie
+  lives, so one fetch per page load, held in memory beside the access
+  token, covers every later refresh and the logout. A `403` from either
+  guarded route means the held token went stale: refetch once and retry.
+- **Throttle shape:** `/auth/csrf` allows 60/min per IP against refresh's
+  30/min, so fetching the token can never be the reason a refresh is
+  refused.
