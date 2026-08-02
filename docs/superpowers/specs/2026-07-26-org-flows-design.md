@@ -131,3 +131,14 @@ MSW + Testing Library on spec 6's foundations.
 | Permission UX | Claim-driven rendering, API enforces | Rendering everything and mapping 403s; client-side enforcement |
 | Member lookup UX | Exact-match confirm card, plain not-found | Suggestion lists (violates backend privacy stance) |
 | Guard mirroring | Client mirrors last-owner/owner-only guards for UX, maps API errors as truth | Trusting client checks alone; no client mirroring (poor UX) |
+
+## Amendment — the api's auth as implemented (2026-08-02)
+
+Spec 2's implementation (zarlania-api PR #33) shipped scoped CSRF
+protection, and the api's spec 3 amendment extends it to the org-switch
+route this spec depends on: **`POST /auth/token` authenticates with the
+refresh cookie, so it will be CSRF-guarded like `/auth/refresh` and
+`/auth/logout`**. The switch call must carry the CSRF token header the
+auth-flows session layer already holds (fetched from `GET /auth/csrf` —
+see that spec's amendment for the choreography). Without the header the
+switch answers `403`.

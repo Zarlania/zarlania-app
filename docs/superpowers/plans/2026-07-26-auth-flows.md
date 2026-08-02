@@ -295,3 +295,26 @@ EOF
 - **Spec coverage:** data layer + `ApiError` + single-flight → 1; session model/boot/proactive/logout-cache-wipe → 2; guards + public-never-blocks → 3; error-copy module → 4; signup/check-email/resend + enumeration-friendly UX → 5; verify (no auto-session) → 6; login branches, shell, home, session-aware landing header → 7; prerender intact + docs → 8. MSW as the network layer for all flow tests → 1's harness.
 - **Placeholders:** none; copy strings are given verbatim where tests assert them.
 - **Type consistency:** `MeResponse`/`TokenResponse` single-homed in `types.ts`; session statuses one union; `VAULTS` reused from spec 5's `content/vaults.ts`; `loginWithToken` produced in 2, consumed in 7.
+
+## Amendment — the api's auth as implemented (2026-08-02)
+
+Written before spec 2's implementation (zarlania-api PR #33) settled. These
+deltas override the tasks above where they conflict (tracked as issue #45):
+
+- **Task 1's `refreshAccessToken()` must send a CSRF header.**
+  `POST /auth/refresh` is CSRF-guarded and answers `403` without one. Add a
+  csrf module beside the token store: fetch `GET /auth/csrf` (with
+  `credentials: 'include'`) → `{ headerName, token }`, cache both in
+  memory, attach on refresh; on a `403` refetch once and retry. The
+  single-flight rule extends to the csrf fetch — concurrent refreshes share
+  one.
+- **Task 2's logout must send the same header** — `POST /auth/logout` is
+  the other guarded route. Boot becomes `GET /auth/csrf` →
+  `POST /auth/refresh`; the cached pair serves both.
+- **MSW tests should assert the header**: refresh and logout handlers
+  reject requests missing the header `GET /auth/csrf` named, so a
+  regression fails the way production would (403), and the single-flight
+  test also observes exactly one csrf fetch.
+- The endpoint list on the contract line above is already correct
+  (`POST /auth/resend` — the api's spec table briefly said
+  `/auth/verify/resend`; the implementation and this plan agree).
