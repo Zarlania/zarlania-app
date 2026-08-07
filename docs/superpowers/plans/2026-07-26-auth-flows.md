@@ -17,7 +17,12 @@
 - Base URL: `import.meta.env.VITE_ZARLANIA_API_URL` (exists in `.env.example`). Auth requests use `credentials: 'include'`.
 - The access token lives in one module's memory — never in localStorage/sessionStorage/cookies readable by JS.
 - Backend contract constants (exact, from the api specs): cookie is server-managed; endpoints `POST /auth/register|verify|resend|login|refresh|logout`, `GET /users/me`; error codes `auth.username-taken` — no: the register 409 code is `auth.username-taken`, unverified `auth.email-unverified`, bad login `auth.invalid-credentials`, throttle `auth.throttled`, invalid verify token `auth.invalid-token`, validation `validation.failed`. Problem bodies carry `code` and optionally `errors` (field → message).
-- Validation mirrored client-side: username `[a-z0-9-]{3,30}`, password 12–128.
+- Validation mirrored client-side: username `[a-z0-9-]{3,30}`, password 12–128. The api enforces the
+  128 ceiling on **login** as well as register, so an over-long password there is `400 validation.failed`
+  with `errors.password`, not a 401.
+- Throttled routes (all per client IP, `auth.throttled`): register 5/min, login 10/min, resend 3/min,
+  **verify 10/min**, refresh 30/min, **logout 60/min**, csrf 60/min. Every `/auth` route is throttled, so
+  any of them can answer `429`. Responses carry `Retry-After` in whole seconds, readable cross-origin.
 - Routes added (exact): `/check-your-email`, `/verify-email`, `/home`; `/login` + `/signup` replace their stubs. Only `/` stays prerendered.
 - Session statuses (exact union): `'unknown' | 'authenticated' | 'anonymous'`.
 
@@ -71,7 +76,7 @@ git fetch origin master && git checkout -b <ISSUE>-auth-flows origin/master
 - Produces:
   - `token.ts`: module-scoped store — `getAccessToken(): string | null`, `setAccessToken(token: string | null): void`. Nothing else may hold the token.
   - `ApiError.ts`: `export class ApiError extends Error { readonly status: number; readonly code: string; readonly fieldErrors: Record<string, string> }` with `code` defaulting `'unknown'` when the body has none.
-  - `client.ts`: `export async function apiFetch<T>(path: string, options?: { method?: string; body?: unknown; auth?: boolean }): Promise<T>` — JSON in/out (204 → `undefined as T`); `auth: true` adds `Authorization: Bearer` and `credentials: 'include'` and, on a 401, awaits `refreshAccessToken()` (single-flight: one shared in-flight promise) then retries exactly once; `export async function refreshAccessToken(): Promise<boolean>` — `POST /auth/refresh` with credentials, on 200 stores the new token and returns true, else clears the token and returns false.
+  - `client.ts`: `export async function apiFetch<T>(path: string, options?: { method?: string; body?: unknown; auth?: boolean }): Promise<T>` — JSON in/out (204 → `undefined as T`); `auth: true` adds `Authorization: Bearer` and `credentials: 'include'` and, on a 401, awaits `refreshAccessToken()` (single-flight: one shared in-flight promise) then retries exactly once; `export async function refreshAccessToken(): Promise<boolean>` — `POST /auth/refresh` with credentials, on 200 stores the new token and returns true, else clears the token and returns false. Sending a stale `Authorization` header alongside is harmless — the api ignores bearer tokens on its public paths — so no code here needs to strip it.
 
 - [ ] **Step 1: MSW harness**
 
@@ -217,11 +222,11 @@ git commit -m "#<ISSUE> feat: signup with mirrored validation and the check-your
 
 **Files:** Fill `src/routes/verify-email.tsx`; test `src/routes/verify-email.test.tsx`
 
-**Interfaces:** On mount, reads `?token=` (`useSearchParams`) and fires `useVerifyEmail` once: pending → "Verifying your seal…"; success → "Your seal is verified." + a **Log in** link to `/login` (the API mints no session from an emailed token — spec rationale); failure `auth.invalid-token` → its copy + an email input feeding `useResendVerification`; missing token → the failure state directly.
+**Interfaces:** On mount, reads `?token=` (`useSearchParams`) and fires `useVerifyEmail` once: pending → "Verifying your seal…"; success → "Your seal is verified." + a **Log in** link to `/login` (the API mints no session from an emailed token — spec rationale); failure `auth.invalid-token` → its copy + an email input feeding `useResendVerification`; `auth.throttled` (verify is capped at 10/min per IP) → throttled copy with the resend input still offered, since retrying an expired link a few times is how a real person reaches it; missing token → the failure state directly.
 
 - [ ] **Step 1: Failing tests → implement → commit**
 
-Tests: success path renders the log-in link; 400 path renders expiry copy and the resend input works; no token → failure state without a network call (assert zero handler hits).
+Tests: success path renders the log-in link; 400 path renders expiry copy and the resend input works; 429 path renders throttled copy and still offers resend; no token → failure state without a network call (assert zero handler hits).
 
 ```bash
 npm run verify
@@ -240,14 +245,14 @@ git commit -m "#<ISSUE> feat: verify-email landing with resend recovery"
 
 **Interfaces:**
 - Produces:
-  - Login form: single "Email or username" field + password; submit → `useLogin` → `loginWithToken(response.accessToken)` → navigate `?next` ?? `/home`. Error mapping: 401 → invalid-credentials copy; 403 `auth.email-unverified` → dedicated block with a resend button (needs the email — shown only when the identifier contains `@`, else prompts for email); 429 → throttled copy.
+  - Login form: single "Email or username" field + password; submit → `useLogin` → `loginWithToken(response.accessToken)` → navigate `?next` ?? `/home`. Error mapping: 401 → invalid-credentials copy; 403 `auth.email-unverified` → dedicated block with a resend button (needs the email — shown only when the identifier contains `@`, else prompts for email); 429 → throttled copy; 400 `validation.failed` → field-level message from `errors.password` (the api caps login passwords at 128 like register, so this is reachable here and not only on signup).
   - `AppShell` (the authenticated layout, rendered by `home.tsx` and reused by spec 7): header = logo → `/home`, org indicator (`organization.name`), `ThemeToggle`, `UserMenu` (username button opening a menu with "Log out" — `role="menu"`/`menuitem`, Escape closes, focus returns); `children` below. `VaultGrid`: the six `VAULTS` from spec 5's content module rendered as locked cards ("Coming soon" badge, `aria-disabled`, no link).
   - `home.tsx`: `useSession` greeting "Well met, {username}." + `VaultGrid`.
   - `SiteHeader` gains optional session awareness: when `status === 'authenticated'`, swap "Enter"/"Create account" for a single "Enter your keep" → `/home` (prop-free — it calls `useSession` itself; the landing stays instant because the provider never blocks public rendering).
 
 - [ ] **Step 1: Failing tests**
 
-`login.test.tsx`: happy path stores the token (spy via a follow-up authed call in MSW), lands on `/home`; honors `?next=/home` round-trip from the guard; 401/403/429 branches render their copy; unverified branch's resend fires for an email identifier. `home.test.tsx`: greeting shows the username; all six vault cards `aria-disabled` with no links; logout via the menu (keyboard: open with Enter, arrow to "Log out", Enter) → lands on `/`, subsequent `/home` visit redirects to login (MSW refresh now 401).
+`login.test.tsx`: happy path stores the token (spy via a follow-up authed call in MSW), lands on `/home`; honors `?next=/home` round-trip from the guard; 401/403/429 branches render their copy; 400 `validation.failed` with `errors: { password: … }` shows the field-level message; unverified branch's resend fires for an email identifier. `home.test.tsx`: greeting shows the username; all six vault cards `aria-disabled` with no links; logout via the menu (keyboard: open with Enter, arrow to "Log out", Enter) → lands on `/`, subsequent `/home` visit redirects to login (MSW refresh now 401).
 
 - [ ] **Step 2: Implement, pass, commit**
 

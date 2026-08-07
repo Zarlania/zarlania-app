@@ -170,3 +170,36 @@ carry it (tracked as issue #45):
 - **Throttle shape:** `/auth/csrf` allows 60/min per IP against refresh's
   30/min, so fetching the token can never be the reason a refresh is
   refused.
+
+## Amendment — the api's review round on PR #33 (2026-08-06)
+
+PR #33 changed five contract facts after the amendment above was written
+(tracked as issue #57). None of them reopens a design decision; four add
+behaviour this spec has to name, and the fifth removes a constraint:
+
+- **`POST /auth/verify` is throttled**, 10/min per client IP. It was
+  unthrottled when the pages below were written, so verify-email needs the
+  same `429` path the resend button already has — a page that only knows
+  `auth.invalid-token` is a dead end for anyone who retries an expired link
+  a few times.
+- **`POST /auth/logout` is throttled**, 60/min per client IP. Far above any
+  real session's logout rate; named here so the number is not a surprise.
+- **`POST /auth/login` rejects a password over 128 characters** with `400
+  validation.failed` and `errors.password`, mirroring the registration
+  ceiling. Login is therefore the one place besides signup where
+  `validation.failed` is reachable, so its error mapping cannot assume
+  401/403/429 are the only outcomes.
+- **`Retry-After` is exposed through CORS** and can now be read. The
+  throttled copy is vague ("try again shortly") because the delay was
+  previously unreadable; it can carry the real wait now. Treated as an
+  opportunity, not a requirement — the copy stays correct without it.
+- **A stale `Authorization` header on `POST /auth/refresh` is ignored**
+  rather than rejected. The api reads no bearer token on its public paths,
+  so a global auth interceptor attaching an expired access token to the
+  refresh call cannot break the refresh. Nothing here has to strip it.
+
+The 2026-08-02 amendment's "unless the request carries a CSRF token header"
+is now literally true rather than approximately so: the api accepted a
+`_csrf` form parameter as well when that was written, and now reads the
+header only. No client change follows — the contract as stated was always
+the one to build against.
